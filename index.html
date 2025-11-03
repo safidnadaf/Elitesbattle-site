@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ElitesBattle Esports — Nepal</title>
+  <meta name="description" content="ElitesBattle Esports — Nepal-based PUBG MOBILE tournaments. Register, vote, and compete for prizes (paid after admin verification).">
+  <link rel="icon" href="elitebattle_assets/elitebattle_icon.png" sizes="32x32">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html{scroll-behavior:smooth}
+    .glass{background:rgba(17,17,17,.6);backdrop-filter:blur(8px)}
+    .card{border:1px solid rgba(255,255,255,.08)}
+    .grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.75rem}
+    /* Clean, text-free hero */
+    .hero-bg{
+      background:
+        radial-gradient(80% 120% at 10% 0%, rgba(148,87,235,.25), transparent 60%),
+        radial-gradient(80% 120% at 90% 0%, rgba(64,224,208,.18), transparent 60%),
+        linear-gradient(180deg, #0b0b10 0%, #121018 60%, #0b0b10 100%);
+    }
+    /* Navbar hover underline animation */
+    .nav-link{position:relative;transition:color .25s ease}
+    .nav-link::after{
+      content:""; position:absolute; left:0; bottom:-6px; height:2px; width:100%;
+      background:linear-gradient(90deg,#fff,#a7a7ff);
+      transform:scaleX(0); transform-origin:left; transition:transform .25s ease;
+      opacity:.9;
+    }
+    .nav-link:hover{color:#fff}
+    .nav-link:hover::after{transform:scaleX(1)}
+    /* Buttons micro-interactions */
+    .btn{transition:transform .12s ease, box-shadow .12s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    /* Sticky header shadow on scroll */
+    .header-shadow{box-shadow:0 6px 20px rgba(0,0,0,.25)}
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100">
+  <!-- Header (Text Brand) -->
+  <header id="siteHeader" class="sticky top-0 z-40 bg-neutral-950/80 backdrop-blur border-b border-white/10 transition-shadow">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <!-- BIG TEXT BRAND -->
+      <a href="#top" class="leading-tight">
+        <div class="text-xl md:text-2xl font-extrabold tracking-wide">ELITESBATTLE ESPORTS</div>
+        <div class="text-[11px] md:text-xs text-white/70 -mt-0.5">NEPAL TOURNAMENTS</div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="#tournament" class="nav-link">Tournament</a>
+        <a href="#poll" class="nav-link">Poll</a>
+        <a href="#rules" class="nav-link">Rules</a>
+        <a href="#fairplay" class="nav-link">Fair Play</a>
+        <a href="#terms" class="nav-link">T&Cs</a>
+        <a href="#privacy" class="nav-link">Privacy</a>
+      </nav>
+      <button id="openRegister" class="btn px-4 py-2 rounded-xl bg-white text-black text-sm font-semibold">Register</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section id="top" class="relative overflow-hidden hero-bg">
+    <div class="absolute inset-0" aria-hidden="true"
+         style="background-image: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35) 30%, rgba(0,0,0,.65));"></div>
+    <div class="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
+      <div class="max-w-3xl">
+        <p class="text-sm tracking-widest text-white/80 uppercase">ELITESBATTLE ESPORTS</p>
+        <h1 class="mt-2 text-4xl md:text-6xl font-extrabold leading-tight">
+          Nepal’s Online PUBG MOBILE Tournaments
+        </h1>
+        <p class="mt-4 text-neutral-200 md:text-lg">
+          Join The ElitesBattle Revolution And Become A Part Of The Ultimate Esports Community!
+        </p>
+        <p class="mt-2 text-neutral-300">
+          Vote for the next match, register to play, be ready 30 minutes before start, and compete. Prizes are paid after admin verification.
+        </p>
+        <div class="mt-6 flex gap-3">
+          <a href="#tournament" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">View Tournament</a>
+          <button id="openRegister2" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Register Now</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="max-w-6xl mx-auto px-4 -mt-6 md:-mt-10">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="glass card rounded-2xl p-4 text-center">
+        <div class="text-xs text-neutral-400 uppercase">Total Matches</div>
+        <div id="statMatches" class="text-2xl font-bold">0</div>
+      </div>
+      <div class="glass card rounded-2xl p-4 text-center">
+        <div class="text-xs text-neutral-400 uppercase">Total Players</div>
+        <div id="statPlayers" class="text-2xl font-bold">0</div>
+      </div>
+      <div class="glass card rounded-2xl p-4 text-center">
+        <div class="text-xs text-neutral-400 uppercase">Total Winnings (NPR)</div>
+        <div id="statWinnings" class="text-2xl font-bold">0</div>
+      </div>
+      <div class="glass card rounded-2xl p-4 text-center">
+        <div class="text-xs text-neutral-400 uppercase">Top Reward (NPR)</div>
+        <div id="statTopReward" class="text-2xl font-bold">0</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tournament (same as before) -->
+  <section id="tournament" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="glass card rounded-2xl p-5">
+        <h2 class="text-xl font-semibold">Upcoming Match</h2>
+        <div class="mt-1 text-neutral-300 text-sm">Match ID: <span id="matchId">EBE-NEP-0001</span></div>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div class="rounded-xl card p-3"><div class="text-neutral-400">Date</div><div id="matchDate" class="text-lg font-semibold">05 Nov 2025, 8:00 PM</div></div>
+          <div class="rounded-xl card p-3"><div class="text-neutral-400">Check-in</div><div id="checkin" class="text-lg font-semibold">Be ready 7:30–7:50 PM</div></div>
+          <div class="rounded-xl card p-3"><div class="text-neutral-400">Map</div><div id="map" class="text-lg font-semibold">Erangel</div></div>
+          <div class="rounded-xl card p-3"><div class="text-neutral-400">Prize</div><div id="prize" class="text-lg font-semibold">Rs 3,000 + Rs 2,500 Special Award</div></div>
+        </div>
+        <div class="mt-4">
+          <h3 class="font-semibold mb-2">Entry Fees</h3>
+          <div class="grid-auto">
+            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Solo</div><div class="text-xl font-semibold">Rs 100</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Duo (per team)</div><div class="text-xl font-semibold">Rs 200</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Squad (per team)</div><div class="text-xl font-semibold">Rs 400</div></div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <h3 class="font-semibold mb-2">Live Slots (Mode: <span id="currentModeLabel">Solo</span>, Map: <span id="slotMap">Erangel</span>)</h3>
+          <div class="grid-auto text-sm" id="slotGrid"></div>
+          <p class="text-xs text-neutral-400 mt-2">* Demo counter. In production, connect to your database.</p>
+        </div>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <button id="openRegister3" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">Register</button>
+          <button id="exportRegs" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Export Registrations CSV</button>
+        </div>
+      </div>
+
+      <div class="glass card rounded-2xl p-5">
+        <h3 class="text-lg font-semibold">About ElitesBattle Esports</h3>
+        <p class="mt-2 text-neutral-300 text-sm">ElitesBattle Esports Pvt. Ltd. is a Nepal-based online tournament organizer for skill-based PUBG MOBILE competitions. Matches are recorded (<strong>VOD = Video on Demand</strong>) and reviewed by admins before payouts. Players must be 18+.</p>
+        <div class="mt-4 grid-auto">
+          <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Fair Play</div><div class="font-semibold">No emulators, no third-party tools, no cheating. <strong>DQ = Disqualified</strong> for rule violations.</div></div>
+          <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Payouts</div><div class="font-semibold">Prizes paid after admin verification.</div></div>
+          <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Special Award</div><div class="font-semibold">Rs 2,500 Most Entertaining Player — community vote; if tied/unclear, admins decide.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Utilities -->
+  <section class="max-w-6xl mx-auto px-4 py-6">
+    <div class="glass card rounded-2xl p-5">
+      <h3 class="text-lg font-semibold">Admin Utilities (MVP)</h3>
+      <p class="text-neutral-300 text-sm mt-2">Quick exports for your spreadsheets without a database.</p>
+      <div class="mt-3 flex flex-wrap gap-3">
+        <button id="exportPoll" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Export Poll CSV</button>
+        <button id="exportRegs2" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Export Registrations CSV</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Poll -->
+  <section id="poll" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="glass card rounded-2xl p-5">
+      <h2 class="text-xl font-semibold">Community Poll — Help Decide the Next Match</h2>
+      <form id="pollForm" class="grid md:grid-cols-4 gap-3 mt-4 text-sm">
+        <div><label class="block mb-1">Preferred Date</label><input id="pollDate" type="date" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required></div>
+        <div><label class="block mb-1">Map</label><select id="pollMap" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option>Erangel</option><option>Livik</option><option>Sanhok</option><option>Miramar</option><option>Vikendi</option></select></div>
+        <div><label class="block mb-1">Time</label><select id="pollTime" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option>7:00 PM</option><option>7:30 PM</option><option selected>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option></select></div>
+        <div><label class="block mb-1">Mode</label><select id="pollMode" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option selected>Solo</option><option>Duo</option><option>Squad</option></select></div>
+        <div class="md:col-span-4">
+          <button class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold" type="submit">Submit Vote</button>
+          <span id="pollThanks" class="ml-3 text-emerald-400 hidden">Thanks — your vote is recorded (demo).</span>
+        </div>
+      </form>
+      <p class="text-xs text-neutral-400 mt-3">* Poll saves locally for demo. In production, store votes in a database and display results.</p>
+    </div>
+  </section>
+
+  <!-- Fair Play -->
+  <section id="fairplay" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="glass card rounded-2xl p-5">
+      <h2 class="text-xl font-semibold">Fair Play Policy</h2>
+      <ul class="list-disc pl-5 mt-3 space-y-2 text-neutral-300 text-sm">
+        <li><strong>Mobile only:</strong> Emulators/controllers/VPN abuse are not allowed.</li>
+        <li><strong>Cheating:</strong> Third-party tools, teaming with outsiders, stream sniping, or glitch abuse → <strong>DQ (Disqualified)</strong>, ban, prize loss.</li>
+        <li><strong>Verification:</strong> Matches are recorded (<strong>VOD = Video on Demand</strong>) and may be reviewed.</li>
+        <li><strong>Check-in:</strong> Be ready 30 minutes before start (7:30–7:50 PM). No-show = no credit.</li>
+        <li><strong>Conduct:</strong> No harassment/toxicity; respect admins and players.</li>
+        <li><strong>Payouts:</strong> Prizes paid via Nepali methods after admin verification.</li>
+      </ul>
+      <p class="mt-4 text-neutral-400 text-sm"><strong>Eligibility:</strong> 18+ only.</p>
+    </div>
+  </section>
+
+  <!-- T&Cs -->
+  <section id="terms" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="glass card rounded-2xl p-5">
+      <h2 class="text-xl font-semibold">Terms &amp; Conditions (Key Points)</h2>
+      <ol class="list-decimal pl-5 mt-3 space-y-2 text-neutral-300 text-sm">
+        <li><strong>Organizer:</strong> ElitesBattle Esports Pvt. Ltd. (Nepal).</li>
+        <li><strong>Fees & Prizes:</strong> Entry fees in NPR. Prizes paid after admin verification.</li>
+        <li><strong>Cancellations:</strong> If organizer cancels, entrants receive a free re-entry credit to a future match of equal value (no cash refund).</li>
+        <li><strong>Data:</strong> We collect name, PUBG ID, WhatsApp number for tournament operations only.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Privacy -->
+  <section id="privacy" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="glass card rounded-2xl p-5">
+      <h2 class="text-xl font-semibold">Privacy Notice (Short)</h2>
+      <p class="mt-3 text-neutral-300 text-sm">We collect your name, PUBG ID, and WhatsApp number to manage tournament registration, check-in, communication, and prize payouts. We do not sell your data. You may request deletion after the tournament ends, except data kept for legal/accounting purposes.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-neutral-400 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div>© <span id="year"></span> ElitesBattle Esports Pvt. Ltd. — Nepal</div>
+      <div class="flex items-center gap-4">
+        <a href="https://facebook.com/" target="_blank" class="nav-link">Facebook</a>
+        <a href="https://instagram.com/" target="_blank" class="nav-link">Instagram</a>
+        <a href="https://www.tiktok.com/" target="_blank" class="nav-link">TikTok</a>
+        <a href="https://youtube.com/" target="_blank" class="nav-link">YouTube</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="fixed inset-0 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative z-10 w-full max-w-lg mx-4 glass card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Register for Match <span class="text-neutral-400 text-sm" id="regMatchId">#EBE-NEP-0001</span></h3>
+        <button id="closeRegister" class="p-2 rounded-lg hover:bg-white/10" aria-label="Close">✕</button>
+      </div>
+      <form id="regForm" class="mt-4 space-y-3 text-sm">
+        <div class="rounded-xl card p-3">
+          <div class="text-neutral-400 text-xs">Current mode</div>
+          <div class="font-semibold" id="currentModeInline">Solo</div>
+        </div>
+        <div><label class="block mb-1">Player / Team Lead Name *</label><input id="playerName" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., SAFID" required/></div>
+        <div><label class="block mb-1">PUBG Mobile ID *</label><input id="pubgId" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Numeric ID" required/></div>
+        <div><label class="block mb-1">WhatsApp Number (+977) *</label><input id="phone" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="+977 98...." required/></div>
+        <label class="flex items-start gap-2"><input id="waConsent" type="checkbox" class="mt-1"><span>I agree to be added to the official WhatsApp group for match coordination.</span></label>
+        <label class="flex items-start gap-2"><input id="agreeRules" type="checkbox" class="mt-1"><span>I confirm I am 18+ and I agree to the Rules and T&Cs.</span></label>
+        <button class="btn w-full py-2 rounded-xl bg-white text-black font-semibold" type="submit">Reserve (Demo)</button>
+        <p class="text-xs text-neutral-400">Demo: payment not connected. Your reservation updates counters locally.</p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Sticky header shadow on scroll
+    const header = document.getElementById('siteHeader');
+    addEventListener('scroll', ()=> {
+      if (window.scrollY > 10) header.classList.add('header-shadow');
+      else header.classList.remove('header-shadow');
+    });
+
+    // ---- Demo state ----
+    const CAPACITY = { solo:100, duo:50, squad:25 };
+    const state = {
+      map:'Erangel',
+      mode:'solo',
+      used:{ Erangel:{ solo:7, duo:3, squad:2 } },
+      poll:[],
+      registrations:[],
+      stats:{ matches:12, players:286, winnings:54000, topReward:5000 }
+    };
+    const el = id => document.getElementById(id);
+
+    // Count-up animation
+    function countUp(elm, target, duration=1200){
+      const start = performance.now(), from = 0;
+      function frame(now){
+        const p = Math.min(1,(now-start)/duration);
+        const val = Math.floor(from + (target-from)*p);
+        elm.textContent = val.toLocaleString();
+        if(p<1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+    function renderStats(){
+      countUp(el('statMatches'),  state.stats.matches);
+      countUp(el('statPlayers'),  state.stats.players);
+      countUp(el('statWinnings'), state.stats.winnings);
+      countUp(el('statTopReward'),state.stats.topReward);
+    }
+
+    function renderSlots(){
+      const sg = el('slotGrid'); sg.innerHTML='';
+      const used = state.used[state.map] || { solo:0, duo:0, squad:0 };
+      const t = state.mode;
+      const remaining = Math.max(0, CAPACITY[t] - (used[t]||0));
+      const div = document.createElement('div');
+      div.className='rounded-xl card p-3';
+      div.innerHTML=`
+        <div class="uppercase tracking-wide text-neutral-400">${t}</div>
+        <div class="mt-1 text-2xl font-semibold">${remaining}</div>
+        <div class="text-neutral-400">left / ${CAPACITY[t]}</div>`;
+      sg.appendChild(div);
+      el('currentModeLabel').textContent = t[0].toUpperCase()+t.slice(1);
+      el('currentModeInline').textContent = t[0].toUpperCase()+t.slice(1);
+    }
+
+    function openModal(){ el('registerModal').classList.remove('hidden'); el('registerModal').classList.add('flex'); }
+    function closeModal(){ el('registerModal').classList.add('hidden'); el('registerModal').classList.remove('flex'); }
+
+    // Init
+    renderStats();
+    renderSlots();
+    el('year').textContent = new Date().getFullYear();
+
+    // Buttons → modal
+    el('openRegister').addEventListener('click', openModal);
+    el('openRegister2').addEventListener('click', openModal);
+    el('openRegister3')?.addEventListener('click', openModal);
+    el('closeRegister').addEventListener('click', closeModal);
+
+    // CSV helpers
+    function toCSV(rows){
+      const esc = v => '"' + String(v??'').replaceAll('"','""') + '"';
+      const header = Object.keys(rows[0] || {}).map(esc).join(',');
+      const body = rows.map(r => Object.values(r).map(esc).join(',')).join('\n');
+      return header + (body?('\n'+body):'');
+    }
+    function downloadCSV(filename, rows){
+      if(!rows.length){ alert('Nothing to export yet.'); return; }
+      const blob = new Blob([toCSV(rows)], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Registration (demo)
+    document.getElementById('regForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const name=el('playerName').value.trim();
+      const pubg=el('pubgId').value.trim();
+      const phone=el('phone').value.trim();
+      const consent=el('waConsent').checked;
+      const agree=el('agreeRules').checked;
+      const type=state.mode;
+      if(!name||!pubg||!phone){ alert('Please complete all required fields.'); return; }
+      if(!consent){ alert('Please consent to WhatsApp group contact.'); return; }
+      if(!agree){ alert('Please agree to the Rules and T&Cs.'); return; }
+
+      state.registrations.push({
+        timestamp:new Date().toISOString(),
+        match_id:'EBE-NEP-0001',
+        mode:type, map:state.map,
+        player_name:name, pubg_id:pubg, phone:phone
+      });
+      state.used[state.map] = state.used[state.map] || {solo:0,duo:0,squad:0};
+      state.used[state.map][type] = (state.used[state.map][type]||0)+1;
+      renderSlots();
+      alert('Reservation created (demo). After payment (in production), you will receive the WhatsApp link.');
+      closeModal(); e.target.reset();
+    });
+
+    // Poll (demo)
+    document.getElementById('pollForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      state.poll.push({
+        timestamp:new Date().toISOString(),
+        date_choice:el('pollDate').value,
+        map_choice:el('pollMap').value,
+        time_choice:el('pollTime').value,
+        mode_choice:el('pollMode').value
+      });
+      el('pollThanks').classList.remove('hidden');
+      setTimeout(()=>el('pollThanks').classList.add('hidden'), 3000);
+    });
+
+    // Exports
+    document.getElementById('exportPoll').addEventListener('click', ()=>downloadCSV('poll_votes.csv', state.poll));
+    document.getElementById('exportRegs').addEventListener('click', ()=>downloadCSV('registrations.csv', state.registrations));
+    document.getElementById('exportRegs2').addEventListener('click', ()=>downloadCSV('registrations.csv', state.registrations));
+  </script>
+</body>
+</html>
