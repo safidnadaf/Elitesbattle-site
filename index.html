@@ -9,10 +9,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html{scroll-behavior:smooth}
+    /* Main View Toggle */
+    .hidden-view{display:none !important}
     .glass{background:rgba(17,17,17,.6);backdrop-filter:blur(8px)}
     .card{border:1px solid rgba(255,255,255,.08)}
     .grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.75rem}
-    /* Clean, text-free hero */
     .hero-bg{
       background:
         radial-gradient(80% 120% at 10% 0%, rgba(148,87,235,.25), transparent 60%),
@@ -35,189 +36,316 @@
     .btn:active{transform:translateY(0)}
     /* Sticky header shadow on scroll */
     .header-shadow{box-shadow:0 6px 20px rgba(0,0,0,.25)}
+    table{border-collapse:collapse;width:100%}
+    th,td{border-bottom:1px solid rgba(255,255,255,.08); padding:.6rem .5rem; font-size:.9rem}
+    th{color:#c9c9d9;text-align:left}
+    .badge{display:inline-block;padding:.15rem .45rem;border-radius:.5rem;font-size:.72rem}
+    .badge-amber{background:#3a2a00;color:#ffd889;border:1px solid rgba(255,216,137,.2)}
+    
+    /* MODE SWITCHER STYLES */
+    .mode-group{display: flex; border: 1px solid rgba(255,255,255,.2); border-radius: 0.5rem; overflow: hidden; width: fit-content;}
+    .mode-group .mode-btn{
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.15s, color 0.15s;
+        border-radius: 0;
+        border: none;
+        background-color: transparent;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .mode-group .mode-btn + .mode-btn{border-left: 1px solid rgba(255,255,255,.2);}
+    .mode-group .mode-btn.active{background-color: white; color: black; font-weight: 600;}
+
+    /* Styling for Payment Remarks box */
+    .payment-remark-box {
+      background: rgba(17, 17, 17, 0.6);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    /* Toast Notification Style */
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+    .toast {
+        background-color: #10B981; /* Tailwind emerald-500 */
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100">
-  <!-- Header (Text Brand) -->
   <header id="siteHeader" class="sticky top-0 z-40 bg-neutral-950/80 backdrop-blur border-b border-white/10 transition-shadow">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <!-- BIG TEXT BRAND -->
       <a href="#top" class="leading-tight">
         <div class="text-xl md:text-2xl font-extrabold tracking-wide">ELITESBATTLE ESPORTS</div>
         <div class="text-[11px] md:text-xs text-white/70 -mt-0.5">NEPAL TOURNAMENTS</div>
       </a>
-      <nav class="hidden md:flex items-center gap-6 text-sm">
+      <nav class="flex items-center gap-6 text-sm">
         <a href="#tournament" class="nav-link">Tournament</a>
         <a href="#poll" class="nav-link">Poll</a>
-        <a href="#rules" class="nav-link">Rules</a>
         <a href="#fairplay" class="nav-link">Fair Play</a>
         <a href="#terms" class="nav-link">T&Cs</a>
         <a href="#privacy" class="nav-link">Privacy</a>
+        <a href="#admin-login" class="nav-link" id="adminNav">Admin</a>
       </nav>
-      <button id="openRegister" class="btn px-4 py-2 rounded-xl bg-white text-black text-sm font-semibold">Register</button>
-    </div>
+      </div>
   </header>
 
-  <!-- HERO -->
-  <section id="top" class="relative overflow-hidden hero-bg">
-    <div class="absolute inset-0" aria-hidden="true"
-         style="background-image: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35) 30%, rgba(0,0,0,.65));"></div>
-    <div class="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
-      <div class="max-w-3xl">
-        <p class="text-sm tracking-widest text-white/80 uppercase">ELITESBATTLE ESPORTS</p>
-        <h1 class="mt-2 text-4xl md:text-6xl font-extrabold leading-tight">
-          Nepal’s Online PUBG MOBILE Tournaments
-        </h1>
-        <p class="mt-4 text-neutral-200 md:text-lg">
-          Join The ElitesBattle Revolution And Become A Part Of The Ultimate Esports Community!
-        </p>
-        <p class="mt-2 text-neutral-300">
-          Vote for the next match, register to play, be ready 30 minutes before start, and compete. Prizes are paid after admin verification.
-        </p>
-        <div class="mt-6 flex gap-3">
-          <a href="#tournament" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">View Tournament</a>
-          <button id="openRegister2" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Register Now</button>
-        </div>
-      </div>
-    </div>
-  </section>
+  <div id="toast-container" class="opacity-0 translate-x-full"></div>
 
-  <!-- Stats -->
-  <section class="max-w-6xl mx-auto px-4 -mt-6 md:-mt-10">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="glass card rounded-2xl p-4 text-center">
-        <div class="text-xs text-neutral-400 uppercase">Total Matches</div>
-        <div id="statMatches" class="text-2xl font-bold">0</div>
-      </div>
-      <div class="glass card rounded-2xl p-4 text-center">
-        <div class="text-xs text-neutral-400 uppercase">Total Players</div>
-        <div id="statPlayers" class="text-2xl font-bold">0</div>
-      </div>
-      <div class="glass card rounded-2xl p-4 text-center">
-        <div class="text-xs text-neutral-400 uppercase">Total Winnings (NPR)</div>
-        <div id="statWinnings" class="text-2xl font-bold">0</div>
-      </div>
-      <div class="glass card rounded-2xl p-4 text-center">
-        <div class="text-xs text-neutral-400 uppercase">Top Reward (NPR)</div>
-        <div id="statTopReward" class="text-2xl font-bold">0</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Tournament (same as before) -->
-  <section id="tournament" class="max-w-6xl mx-auto px-4 py-10">
-    <div class="grid md:grid-cols-2 gap-4">
-      <div class="glass card rounded-2xl p-5">
-        <h2 class="text-xl font-semibold">Upcoming Match</h2>
-        <div class="mt-1 text-neutral-300 text-sm">Match ID: <span id="matchId">EBE-NEP-0001</span></div>
-        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
-          <div class="rounded-xl card p-3"><div class="text-neutral-400">Date</div><div id="matchDate" class="text-lg font-semibold">05 Nov 2025, 8:00 PM</div></div>
-          <div class="rounded-xl card p-3"><div class="text-neutral-400">Check-in</div><div id="checkin" class="text-lg font-semibold">Be ready 7:30–7:50 PM</div></div>
-          <div class="rounded-xl card p-3"><div class="text-neutral-400">Map</div><div id="map" class="text-lg font-semibold">Erangel</div></div>
-          <div class="rounded-xl card p-3"><div class="text-neutral-400">Prize</div><div id="prize" class="text-lg font-semibold">Rs 3,000 + Rs 2,500 Special Award</div></div>
-        </div>
-        <div class="mt-4">
-          <h3 class="font-semibold mb-2">Entry Fees</h3>
-          <div class="grid-auto">
-            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Solo</div><div class="text-xl font-semibold">Rs 100</div></div>
-            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Duo (per team)</div><div class="text-xl font-semibold">Rs 200</div></div>
-            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Squad (per team)</div><div class="text-xl font-semibold">Rs 400</div></div>
+  <section id="public-view" class="active-view">
+    
+    <section id="top" class="relative overflow-hidden hero-bg">
+      <div class="absolute inset-0" aria-hidden="true"
+          style="background-image: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35) 30%, rgba(0,0,0,.65));"></div>
+      <div class="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
+        <div class="max-w-3xl">
+          <p class="text-sm tracking-widest text-white/80 uppercase">ELITESBATTLE ESPORTS</p>
+          <h1 class="mt-2 text-4xl md:text-6xl font-extrabold leading-tight">
+            Nepal’s Online PUBG MOBILE Tournaments
+          </h1>
+          <p class="mt-4 text-neutral-200 md:text-lg">
+            Join The ElitesBattle Revolution And Become A Part Of The Ultimate Esports Community!
+          </p>
+          <p class="mt-2 text-neutral-300">
+            Vote for the next match, register to play, be ready 30 minutes before start, and compete. Prizes are paid after admin verification.
+          </p>
+          <div class="mt-6 flex gap-3">
+            <a href="#tournament" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">View Tournament</a>
+            <button id="openRegister2" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Register Now</button>
           </div>
         </div>
-        <div class="mt-4">
-          <h3 class="font-semibold mb-2">Live Slots (Mode: <span id="currentModeLabel">Solo</span>, Map: <span id="slotMap">Erangel</span>)</h3>
-          <div class="grid-auto text-sm" id="slotGrid"></div>
-          <p class="text-xs text-neutral-400 mt-2">* Demo counter. In production, connect to your database.</p>
-        </div>
-        <div class="mt-5 flex flex-wrap gap-3">
-          <button id="openRegister3" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">Register</button>
-          <button id="exportRegs" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Export Registrations CSV</button>
-        </div>
       </div>
 
+      <section class="max-w-6xl mx-auto px-4 -mt-6 md:-mt-10 pb-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="glass card rounded-2xl p-4 text-center">
+            <div class="text-xs text-neutral-400 uppercase">Total Matches</div>
+            <div id="statMatches" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="glass card rounded-2xl p-4 text-center">
+            <div class="text-xs text-neutral-400 uppercase">Total Players</div>
+            <div id="statPlayers" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="glass card rounded-2xl p-4 text-center">
+            <div class="text-xs text-neutral-400 uppercase">Total Winnings (NPR)</div>
+            <div id="statWinnings" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="glass card rounded-2xl p-4 text-center">
+            <div class="text-xs text-neutral-400 uppercase">Top Reward (NPR)</div>
+            <div id="statTopReward" class="text-2xl font-bold">0</div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="tournament" class="max-w-6xl mx-auto px-4 py-10">
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="glass card rounded-2xl p-5">
+          <h2 class="text-xl font-semibold">Upcoming Match</h2>
+          <div class="mt-1 text-neutral-300 text-sm">Match ID: <span id="matchId">EBE-NEP-0001</span></div>
+          <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded-xl card p-3"><div class="text-neutral-400">Date</div><div id="matchDate" class="text-lg font-semibold">05 Nov 2025, 8:00 PM</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400">Check-in</div><div id="checkin" class="text-lg font-semibold">Be ready 7:30–7:50 PM</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400">Map</div><div id="map" class="text-lg font-semibold">Erangel</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400">Prize</div><div id="prize" class="text-lg font-semibold">Rs 3,000 + Rs 2,500 Special Award</div></div>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="font-semibold mb-2">Mode & Entry Fees</h3>
+            <div id="modeSwitcher" class="mode-group text-sm">
+                <button data-mode="solo" class="mode-btn active">Solo</button>
+                <button data-mode="duo" class="mode-btn">Duo</button>
+                <button data-mode="squad" class="mode-btn">Squad</button>
+            </div>
+            <div class="rounded-xl card p-3 mt-3">
+                <div class="text-neutral-400 text-sm">Current Entry Fee</div>
+                <div id="currentEntryFee" class="text-xl font-semibold">Rs 100</div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="font-semibold mb-2">Live Slots (Mode: <span id="currentModeLabel">Solo</span>, Map: <span id="slotMap">Erangel</span>)</h3>
+            <div class="grid-auto text-sm" id="slotGrid"></div>
+            <p class="text-xs text-neutral-400 mt-2">* Slot data loaded from mock backend.</p>
+          </div>
+
+          <div class="mt-5 flex flex-wrap gap-3">
+            <button id="openRegister3" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">Register for <span id="regModeBtn">Solo</span></button>
+          </div>
+        </div>
+
+        <div class="glass card rounded-2xl p-5">
+          <h3 class="text-lg font-semibold">About ElitesBattle Esports</h3>
+          <p class="mt-2 text-neutral-300 text-sm">
+            ElitesBattle Esports is a Nepal-based online tournament organizer for skill-based PUBG MOBILE competitions.
+            Matches are recorded (<strong>VOD = Video on Demand</strong>) and reviewed by admins before payouts. Players must be 16+.
+          </p>
+          <div class="mt-4 grid-auto">
+            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Fair Play</div><div class="font-semibold">No emulators, no third-party tools, no cheating. <strong>DQ = Disqualified</strong> for rule violations.</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Payouts</div><div class="font-semibold">Prizes paid after admin verification (within 5 hours).</div></div>
+            <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Special Award</div><div class="font-semibold">Rs 2,500 Most Entertaining Player — community vote; if tied/unclear, admins decide.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="poll" class="max-w-6xl mx-auto px-4 py-10">
       <div class="glass card rounded-2xl p-5">
-        <h3 class="text-lg font-semibold">About ElitesBattle Esports</h3>
-        <p class="mt-2 text-neutral-300 text-sm">ElitesBattle Esports Pvt. Ltd. is a Nepal-based online tournament organizer for skill-based PUBG MOBILE competitions. Matches are recorded (<strong>VOD = Video on Demand</strong>) and reviewed by admins before payouts. Players must be 18+.</p>
-        <div class="mt-4 grid-auto">
-          <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Fair Play</div><div class="font-semibold">No emulators, no third-party tools, no cheating. <strong>DQ = Disqualified</strong> for rule violations.</div></div>
-          <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Payouts</div><div class="font-semibold">Prizes paid after admin verification.</div></div>
-          <div class="rounded-xl card p-3"><div class="text-neutral-400 text-sm">Special Award</div><div class="font-semibold">Rs 2,500 Most Entertaining Player — community vote; if tied/unclear, admins decide.</div></div>
+        <h2 class="text-xl font-semibold">Community Poll — Help Decide the Next Match</h2>
+        <form id="pollForm" class="grid md:grid-cols-4 gap-3 mt-4 text-sm">
+          <div><label class="block mb-1">Preferred Date</label><input id="pollDate" type="date" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required></div>
+          <div><label class="block mb-1">Map</label><select id="pollMap" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option>Erangel</option><option>Livik</option><option>Sanhok</option><option>Miramar</option><option>Vikendi</option></select></div>
+          <div><label class="block mb-1">Time</label><select id="pollTime" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required>
+            <option>7:00 PM</option><option>7:30 PM</option><option selected>8:00 PM</option>
+            <option>8:30 PM</option><option>9:00 PM</option>
+          </select></div>
+          <div><label class="block mb-1">Mode</label><select id="pollMode" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option selected>Solo</option><option>Duo</option><option>Squad</option></select></div>
+          <div class="md:col-span-4">
+            <button class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold" type="submit">Submit Vote</button>
+            <span id="pollThanks" class="ml-3 text-emerald-400 hidden">Thanks — your vote is recorded (demo).</span>
+          </div>
+        </form>
+        <p class="text-xs text-neutral-400 mt-3">* Poll votes saved via mock backend.</p>
+      </div>
+    </section>
+
+    <section id="fairplay" class="max-w-6xl mx-auto px-4 py-10">
+      <div class="glass card rounded-2xl p-5">
+        <h2 class="text-xl font-semibold">Fair Play Policy</h2>
+        <ul class="list-disc pl-5 mt-3 space-y-2 text-neutral-300 text-sm">
+          <li><strong>Mobile only:</strong> Emulators/controllers/VPN abuse are not allowed.</li>
+          <li><strong>Cheating:</strong> Third-party tools, teaming with outsiders, stream sniping, or glitch abuse → <strong>DQ (Disqualified)</strong>, ban, prize loss.</li>
+          <li><strong>Verification:</strong> Matches are recorded (<strong>VOD = Video on Demand</strong>) and may be reviewed.</li>
+          <li><strong>Check-in:</strong> Be ready 30 minutes before start (7:30–7:50 PM). No-show = no credit.</li>
+          <li><strong>Conduct:</strong> No harassment/toxicity; respect admins and players.</li>
+          <li><strong>Payouts:</strong> Prizes paid via Nepali methods after admin verification (within 5 hours).</li>
+        </ul>
+        <p class="mt-4 text-neutral-400 text-sm"><strong>Eligibility:</strong> 16+ only (PUBG Mobile rating).</p>
+      </div>
+    </section>
+
+    <section id="terms" class="max-w-6xl mx-auto px-4 py-10">
+      <div class="glass card rounded-2xl p-5">
+        <h2 class="text-xl font-semibold">Terms &amp; Conditions (Key Points)</h2>
+        <ol class="list-decimal pl-5 mt-3 space-y-2 text-neutral-300 text-sm">
+          <li><strong>Organizer:</strong> ElitesBattle Esports — Nepal.</li>
+          <li><strong>Fees & Prizes:</strong> Entry fees in NPR. Prizes paid after admin verification (within 5 hours).</li>
+          <li><strong>Cancellations:</strong> If organizer cancels, entrants receive a free re-entry credit to a future match of equal value.</li>
+          <li><strong>Data:</strong> We collect name, PUBG ID, WhatsApp number for tournament operations only.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="privacy" class="max-w-6xl mx-auto px-4 py-10">
+      <div class="glass card rounded-2xl p-5">
+        <h2 class="text-xl font-semibold">Privacy Notice</h2>
+        <p class="mt-3 text-neutral-300 text-sm">
+          We collect your name, PUBG ID, and WhatsApp number to manage tournament registration, check-in, communication, and prize payouts.
+          We do not sell your data. You may request deletion after the tournament ends, except data kept for legal/accounting purposes.
+        </p>
+      </div>
+    </section>
+    
+    </section>
+
+  <section id="admin-view" class="hidden-view">
+    
+    <section id="admin-login" class="max-w-sm mx-auto px-4 py-16">
+      <div class="glass card rounded-2xl p-6">
+        <h2 class="text-xl font-semibold">Admin Login</h2>
+        <p class="text-sm text-neutral-400 mt-1">Enter your admin PIN to continue.</p>
+        <form id="adminLoginForm" class="mt-4 space-y-3">
+          <div>
+            <label class="block mb-1 text-sm">Admin PIN</label>
+            <input id="adminPin" type="password" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Enter PIN" required>
+          </div>
+          <button class="btn w-full py-2 rounded-xl bg-white text-black font-semibold" type="submit">Login</button>
+          <p class="text-xs text-neutral-500 mt-2">Default PIN: <code>EBE2025</code> (change it in Dashboard).</p>
+        </form>
+      </div>
+    </section>
+
+    <section id="admin" class="max-w-6xl mx-auto px-4 py-10 hidden">
+      <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Admin Dashboard</h2>
+          <button id="logoutAdmin" class="btn px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white font-semibold">Logout</button>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-1 space-y-6">
+            <div class="glass card rounded-2xl p-5">
+                <h3 class="text-lg font-semibold mb-3">Match Settings</h3>
+                <form id="matchForm" class="mt-3 text-sm space-y-3">
+                    <div><label class="block mb-1">Match ID (Next Match)</label><input id="admMatchId" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10"></div>
+                    <div><label class="block mb-1">Date & Time (display)</label><input id="admMatchDate" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., 05 Nov 2025, 8:00 PM"></div>
+                    <div><label class="block mb-1">Check-in Window</label><input id="admCheckin" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., Be ready 7:30–7:50 PM"></div>
+                    <div><label class="block mb-1">Map</label><select id="admMap" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10"><option>Erangel</option><option>Livik</option><option>Sanhok</option><option>Miramar</option><option>Vikendi</option></select></div>
+                    <div><label class="block mb-1">Prize (display)</label><input id="admPrize" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Rs 3,000 + Rs 2,500 Special Award"></div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="block mb-1">Solo Fee</label><input id="admFeeSolo" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="100"></div>
+                        <div><label class="block mb-1">Duo Fee</label><input id="admFeeDuo" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="200"></div>
+                        <div><label class="block mb-1">Squad Fee</label><input id="admFeeSquad" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="400"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="block mb-1">Cap Solo</label><input id="admCapSolo" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="100"></div>
+                        <div><label class="block mb-1">Cap Duo</label><input id="admCapDuo" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="50"></div>
+                        <div><label class="block mb-1">Cap Squad</label><input id="admCapSquad" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="25"></div>
+                    </div>
+                    <div class="pt-1 flex gap-2">
+                        <button class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold" type="submit">Publish New Match</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="glass card rounded-2xl p-5">
+                <h4 class="font-semibold text-sm mb-2">Admin PIN Update</h4>
+                <form id="pinForm" class="text-sm space-y-2">
+                    <input id="newPin" placeholder="New PIN" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10">
+                    <button class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10" type="submit">Update PIN</button>
+                </form>
+            </div>
+            
+            <div class="glass card rounded-2xl p-5 bg-red-900/20">
+                <h4 class="font-semibold text-sm mb-3 text-red-400">Danger Zone</h4>
+                <button id="wipeAllData" class="btn w-full py-2 rounded-xl bg-red-700 hover:bg-red-600 text-white font-semibold" type="button">WIPE ALL TOURNAMENT DATA</button>
+                <p class="text-xs text-red-300 mt-2">Warning: This clears ALL registrations and polls across ALL match IDs. Keep your PIN and Match Settings.</p>
+            </div>
+
+        </div>
+
+        <div class="glass card rounded-2xl p-5 lg:col-span-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Registrations (<span id="regMatchIdTitle">Current Match</span>)</h3>
+            <div class="flex gap-2">
+              <button id="exportAllRegsAdmin" class="btn px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 text-sm">Export ALL Registrations CSV</button>
+              <button id="exportRegsAdmin" class="btn px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 text-sm">Export Match CSV</button>
+              <button id="clearMatchData" class="btn px-3 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-sm" type="button">Clear Match Data</button>
+            </div>
+          </div>
+          <p class="text-xs text-neutral-400 mt-1">Review the PUBG ID/Remarks to confirm payment matching. Data is only for the current match.</p>
+          <div class="mt-3 overflow-auto">
+            <table>
+              <thead><tr><th>Time</th><th>Match</th><th>Mode</th><th>Player/Lead</th><th>PUBG ID</th><th>Phone</th><th>Remarks</th><th>Amount</th></tr></thead>
+              <tbody id="regTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </section>
 
-  <!-- Admin Utilities -->
-  <section class="max-w-6xl mx-auto px-4 py-6">
-    <div class="glass card rounded-2xl p-5">
-      <h3 class="text-lg font-semibold">Admin Utilities (MVP)</h3>
-      <p class="text-neutral-300 text-sm mt-2">Quick exports for your spreadsheets without a database.</p>
-      <div class="mt-3 flex flex-wrap gap-3">
-        <button id="exportPoll" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Export Poll CSV</button>
-        <button id="exportRegs2" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Export Registrations CSV</button>
-      </div>
-    </div>
-  </section>
 
-  <!-- Poll -->
-  <section id="poll" class="max-w-6xl mx-auto px-4 py-10">
-    <div class="glass card rounded-2xl p-5">
-      <h2 class="text-xl font-semibold">Community Poll — Help Decide the Next Match</h2>
-      <form id="pollForm" class="grid md:grid-cols-4 gap-3 mt-4 text-sm">
-        <div><label class="block mb-1">Preferred Date</label><input id="pollDate" type="date" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required></div>
-        <div><label class="block mb-1">Map</label><select id="pollMap" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option>Erangel</option><option>Livik</option><option>Sanhok</option><option>Miramar</option><option>Vikendi</option></select></div>
-        <div><label class="block mb-1">Time</label><select id="pollTime" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option>7:00 PM</option><option>7:30 PM</option><option selected>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option></select></div>
-        <div><label class="block mb-1">Mode</label><select id="pollMode" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option selected>Solo</option><option>Duo</option><option>Squad</option></select></div>
-        <div class="md:col-span-4">
-          <button class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold" type="submit">Submit Vote</button>
-          <span id="pollThanks" class="ml-3 text-emerald-400 hidden">Thanks — your vote is recorded (demo).</span>
-        </div>
-      </form>
-      <p class="text-xs text-neutral-400 mt-3">* Poll saves locally for demo. In production, store votes in a database and display results.</p>
-    </div>
-  </section>
-
-  <!-- Fair Play -->
-  <section id="fairplay" class="max-w-6xl mx-auto px-4 py-10">
-    <div class="glass card rounded-2xl p-5">
-      <h2 class="text-xl font-semibold">Fair Play Policy</h2>
-      <ul class="list-disc pl-5 mt-3 space-y-2 text-neutral-300 text-sm">
-        <li><strong>Mobile only:</strong> Emulators/controllers/VPN abuse are not allowed.</li>
-        <li><strong>Cheating:</strong> Third-party tools, teaming with outsiders, stream sniping, or glitch abuse → <strong>DQ (Disqualified)</strong>, ban, prize loss.</li>
-        <li><strong>Verification:</strong> Matches are recorded (<strong>VOD = Video on Demand</strong>) and may be reviewed.</li>
-        <li><strong>Check-in:</strong> Be ready 30 minutes before start (7:30–7:50 PM). No-show = no credit.</li>
-        <li><strong>Conduct:</strong> No harassment/toxicity; respect admins and players.</li>
-        <li><strong>Payouts:</strong> Prizes paid via Nepali methods after admin verification.</li>
-      </ul>
-      <p class="mt-4 text-neutral-400 text-sm"><strong>Eligibility:</strong> 18+ only.</p>
-    </div>
-  </section>
-
-  <!-- T&Cs -->
-  <section id="terms" class="max-w-6xl mx-auto px-4 py-10">
-    <div class="glass card rounded-2xl p-5">
-      <h2 class="text-xl font-semibold">Terms &amp; Conditions (Key Points)</h2>
-      <ol class="list-decimal pl-5 mt-3 space-y-2 text-neutral-300 text-sm">
-        <li><strong>Organizer:</strong> ElitesBattle Esports Pvt. Ltd. (Nepal).</li>
-        <li><strong>Fees & Prizes:</strong> Entry fees in NPR. Prizes paid after admin verification.</li>
-        <li><strong>Cancellations:</strong> If organizer cancels, entrants receive a free re-entry credit to a future match of equal value (no cash refund).</li>
-        <li><strong>Data:</strong> We collect name, PUBG ID, WhatsApp number for tournament operations only.</li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- Privacy -->
-  <section id="privacy" class="max-w-6xl mx-auto px-4 py-10">
-    <div class="glass card rounded-2xl p-5">
-      <h2 class="text-xl font-semibold">Privacy Notice (Short)</h2>
-      <p class="mt-3 text-neutral-300 text-sm">We collect your name, PUBG ID, and WhatsApp number to manage tournament registration, check-in, communication, and prize payouts. We do not sell your data. You may request deletion after the tournament ends, except data kept for legal/accounting purposes.</p>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer class="border-t border-white/10">
     <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-neutral-400 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-      <div>© <span id="year"></span> ElitesBattle Esports Pvt. Ltd. — Nepal</div>
+      <div>© <span id="year"></span> ElitesBattle Esports — Nepal</div>
       <div class="flex items-center gap-4">
         <a href="https://facebook.com/" target="_blank" class="nav-link">Facebook</a>
         <a href="https://instagram.com/" target="_blank" class="nav-link">Instagram</a>
@@ -227,10 +355,9 @@
     </div>
   </footer>
 
-  <!-- Register Modal -->
-  <div id="registerModal" class="fixed inset-0 hidden items-center justify-center">
+  <div id="registerModal" class="fixed inset-0 hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/60"></div>
-    <div class="relative z-10 w-full max-w-lg mx-4 glass card rounded-2xl p-5">
+    <div class="relative z-10 w-full max-w-lg mx-auto glass card rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold">Register for Match <span class="text-neutral-400 text-sm" id="regMatchId">#EBE-NEP-0001</span></h3>
         <button id="closeRegister" class="p-2 rounded-lg hover:bg-white/10" aria-label="Close">✕</button>
@@ -240,38 +367,252 @@
           <div class="text-neutral-400 text-xs">Current mode</div>
           <div class="font-semibold" id="currentModeInline">Solo</div>
         </div>
-        <div><label class="block mb-1">Player / Team Lead Name *</label><input id="playerName" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., SAFID" required/></div>
-        <div><label class="block mb-1">PUBG Mobile ID *</label><input id="pubgId" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Numeric ID" required/></div>
-        <div><label class="block mb-1">WhatsApp Number (+977) *</label><input id="phone" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="+977 98...." required/></div>
-        <label class="flex items-start gap-2"><input id="waConsent" type="checkbox" class="mt-1"><span>I agree to be added to the official WhatsApp group for match coordination.</span></label>
-        <label class="flex items-start gap-2"><input id="agreeRules" type="checkbox" class="mt-1"><span>I confirm I am 18+ and I agree to the Rules and T&Cs.</span></label>
-        <button class="btn w-full py-2 rounded-xl bg-white text-black font-semibold" type="submit">Reserve (Demo)</button>
-        <p class="text-xs text-neutral-400">Demo: payment not connected. Your reservation updates counters locally.</p>
+        <div>
+          <label class="block mb-1">Player / Team Lead Name *</label>
+          <input id="playerName" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Your name" required />
+        </div>
+        <div>
+          <label class="block mb-1">PUBG Mobile ID (numbers only) *</label>
+          <input id="pubgId" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., 5123456789" required />
+        </div>
+        <div>
+          <label class="block mb-1">WhatsApp Number (intl format allowed) *</label>
+          <input id="phone" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="+97798… or +447… or 98…" required />
+        </div>
+        <label class="flex items-start gap-2"><input id="waConsent" type="checkbox" class="mt-1" required><span>I agree to be added to the official WhatsApp group for match coordination.</span></label>
+        <label class="flex items-start gap-2"><input id="agreeRules" type="checkbox" class="mt-1" required><span>I confirm I am 16+ and I agree to the Rules and T&Cs.</span></label>
+        <button id="proceedPaymentBtn" class="btn w-full py-2 rounded-xl bg-white text-black font-semibold" type="submit">Proceed to Payment</button>
+        <p class="text-xs text-neutral-400">You’ll be taken to the payment section with your eSewa details.</p>
       </form>
     </div>
   </div>
+  
+  <div id="paymentModal" class="fixed inset-0 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative z-10 w-full max-w-md mx-auto glass card rounded-2xl p-6 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold">Payment — eSewa</h2>
+        <button id="closePaymentModal" class="p-2 rounded-lg hover:bg-white/10" aria-label="Close">✕</button>
+      </div>
+      
+      <p class="mt-2 text-neutral-300">Complete payment within <span class="badge badge-amber">10 minutes</span> to secure your slot.</p>
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="rounded-xl card p-4">
+          <div class="text-neutral-400 text-sm">Pay to (eSewa)</div>
+          <div class="flex items-center gap-2">
+            <div id="payNumber" class="text-xl font-semibold">9817634997</div>
+            <button id="copyNumber" class="btn px-2 py-1 rounded-lg border border-white/20 hover:bg-white/10 text-xs">Copy</button>
+          </div>
+        </div>
+        <div class="rounded-xl card p-4">
+          <div class="text-neutral-400 text-sm">Amount</div>
+          <div id="payAmount" class="text-xl font-semibold">Rs 100</div>
+        </div>
+        <div class="rounded-xl card p-4 col-span-2">
+          <div class="text-neutral-400 text-sm">Payment Remarks (use your PUBG ID for matching)</div>
+          <div class="flex items-center gap-2">
+            <div id="payRemarks" class="text-xl font-semibold">1234567890</div>
+            <button id="copyRemarks" class="btn px-2 py-1 rounded-lg border border-white/20 hover:bg-white/10 text-xs">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <button id="openEsewa" class="btn px-4 py-2 rounded-xl bg-green-500 text-black font-semibold hover:bg-green-400">Pay in eSewa App</button>
+        <button id="backToTournament" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Back to Tournament</button>
+      </div>
+      <p class="text-xs text-neutral-400 mt-3">After payment, we match using your PUBG ID/Remarks and add you to the WhatsApp group to share the room code and match details.</p>
+    </div>
+  </div>
+
 
   <script>
-    // Sticky header shadow on scroll
-    const header = document.getElementById('siteHeader');
-    addEventListener('scroll', ()=> {
-      if (window.scrollY > 10) header.classList.add('header-shadow');
-      else header.classList.remove('header-shadow');
+    // --- Utils & State Management ---
+    const LS = {
+      get(k, def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch{ return def; } },
+      set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+    };
+
+    // Data structure now uses a main object to store all matches
+    const DEFAULT_DATA = {
+        // match_id: { registrations: [], polls: [], used: { map: { mode: count } } }
+        "EBE-NEP-0001": {
+            registrations: [],
+            polls: [],
+            used: { "Erangel": { solo: 0, duo: 0, squad: 0 } } 
+        }
+    };
+    
+    // Global match settings
+    const DEFAULT_MATCH_SETTINGS = {
+      id: "EBE-NEP-0001", date: "05 Nov 2025, 8:00 PM", checkin: "Be ready 7:30–7:50 PM",
+      map: "Erangel", prize: "Rs 3,000 + Rs 2,500 Special Award",
+      fees: { solo: 100, duo: 200, squad: 400 }, caps: { solo: 100, duo: 50, squad: 25 }
+    };
+
+    const MockBackend = {
+        // Loads everything
+        loadInitialData: () => {
+            return {
+                mode: "solo",
+                matchData: LS.get("ebe_match_data", DEFAULT_DATA),
+                matchSettings: LS.get("ebe_match_settings", DEFAULT_MATCH_SETTINGS),
+                stats: LS.get("ebe_stats", { matches:12, players:286, winnings:54000, topReward:5000 }),
+                adminPin: LS.get("ebe_pin", "EBE2025")
+            };
+        },
+        // Saves everything
+        saveState: (data) => {
+            LS.set("ebe_match_data", data.matchData);
+            LS.set("ebe_match_settings", data.matchSettings);
+            LS.set("ebe_stats", data.stats);
+            LS.set("ebe_pin", data.adminPin);
+        },
+    };
+    
+    let state = MockBackend.loadInitialData();
+    // Ensure the current match ID exists in the data structure upon load
+    if (!state.matchData[state.matchSettings.id]) {
+        state.matchData[state.matchSettings.id] = { registrations: [], polls: [], used: { "Erangel": { solo: 0, duo: 0, squad: 0 } } };
+    }
+
+    // Utility to get current match data (used, regs, polls)
+    const currentMatchID = () => state.matchSettings.id;
+    const currentMatchData = () => state.matchData[currentMatchID()];
+    const getNextMatchID = (currentID) => {
+        const parts = currentID.split('-'); // EBE-NEP-0001 -> [EBE, NEP, 0001]
+        if (parts.length < 3) return currentID + "-0002"; // Safety fallback
+        
+        const number = parseInt(parts[2]);
+        if (isNaN(number)) return currentID + "-0002"; // Safety fallback
+
+        // Increment the number and format it back to four digits (0002)
+        const nextNumber = (number + 1).toString().padStart(4, '0');
+        parts[2] = nextNumber;
+        return parts.join('-');
+    };
+
+    // --- UI Hooks ---
+    const el = id => document.getElementById(id);
+    function isAuthed(){ return sessionStorage.getItem("ebe_authed")==="1"; }
+    function logout(){ sessionStorage.removeItem("ebe_authed"); }
+    function amountFor(mode){ return state.matchSettings.fees[mode.toLowerCase()] || 0; }
+    
+    // --- View Routing Logic ---
+    const publicView = el('public-view');
+    const adminView = el('admin-view');
+    const adminLogin = el('admin-login');
+    const adminDashboard = el('admin');
+    const registerModal = el('registerModal');
+    const paymentModal = el('paymentModal');
+    const proceedPaymentBtn = el('proceedPaymentBtn'); // Get the submit button element
+
+    function openModal(modalEl) { modalEl.classList.remove('hidden'); modalEl.classList.add('flex'); }
+    function closeModal(modalEl) { modalEl.classList.add('hidden'); modalEl.classList.remove('flex'); }
+    
+    // Show a temporary success toast notification
+    function showToast(message) {
+        const container = el('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        
+        container.innerHTML = '';
+        container.appendChild(toast);
+        
+        // Show the toast
+        container.style.opacity = '1';
+        container.style.transform = 'translateY(0)';
+        
+        // Hide after 4 seconds
+        setTimeout(() => {
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(-10px)'; // Move slightly up as it fades
+        }, 4000);
+    }
+
+    // Unified Modal Open/Close handlers
+    el('closeRegister').addEventListener('click', () => closeModal(registerModal));
+    el('closePaymentModal').addEventListener('click', () => closeModal(paymentModal));
+    el('backToTournament').addEventListener('click', () => {
+        closeModal(paymentModal);
+        location.hash = '#tournament'; // Ensure page scrolls back to tournament
+        showToast("Registration Complete! Check WhatsApp for game details.");
+    });
+    
+    function showView(targetHash) {
+        // Hide modals if viewing main content or admin views
+        closeModal(registerModal);
+        closeModal(paymentModal);
+        
+        // Reset Admin View visibility
+        publicView.classList.remove('hidden-view');
+        adminView.classList.add('hidden-view');
+        adminLogin.classList.add('hidden');
+        adminDashboard.classList.add('hidden');
+        
+        const hash = targetHash || location.hash;
+
+        if (hash === '#admin') {
+            if (isAuthed()) {
+                adminView.classList.remove('hidden-view');
+                publicView.classList.add('hidden-view');
+                adminDashboard.classList.remove('hidden');
+                renderAdmin();
+                adminDashboard.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                location.hash = '#admin-login';
+            }
+        } else if (hash === '#admin-login') {
+            logout(); 
+            adminView.classList.remove('hidden-view');
+            publicView.classList.add('hidden-view');
+            adminLogin.classList.remove('hidden');
+            adminLogin.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Default public views (scroll to anchor)
+            publicView.classList.remove('hidden-view');
+            const targetEl = el(hash.substring(1)) || el('top');
+            targetEl.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // Hash change handler
+    window.addEventListener('hashchange', () => showView(location.hash));
+
+    // Initial load check
+    showView(location.hash || '#top');
+    
+    // Navigation link handling
+    document.querySelectorAll('nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const hash = e.currentTarget.getAttribute('href');
+            if (hash === '#admin-login') {
+                e.preventDefault();
+                location.hash = '#admin-login'; 
+            } else if (hash.startsWith('#')) {
+                if (location.hash !== hash) location.hash = hash;
+            }
+        });
     });
 
-    // ---- Demo state ----
-    const CAPACITY = { solo:100, duo:50, squad:25 };
-    const state = {
-      map:'Erangel',
-      mode:'solo',
-      used:{ Erangel:{ solo:7, duo:3, squad:2 } },
-      poll:[],
-      registrations:[],
-      stats:{ matches:12, players:286, winnings:54000, topReward:5000 }
-    };
-    const el = id => document.getElementById(id);
+    // --- Admin Auth ---
+    el('adminLoginForm')?.addEventListener('submit', e => {
+        e.preventDefault();
+        const pin = el('adminPin').value.trim();
+        if (pin === state.adminPin) {
+            sessionStorage.setItem("ebe_authed", "1");
+            location.hash = '#admin';
+        } else {
+            alert("Invalid PIN.");
+        }
+    });
 
-    // Count-up animation
+    el('logoutAdmin')?.addEventListener('click', () => {
+        logout();
+        location.hash = '#admin-login';
+    });
+
+    // --- Public UI Rendering ---
     function countUp(elm, target, duration=1200){
       const start = performance.now(), from = 0;
       function frame(now){
@@ -283,47 +624,294 @@
       requestAnimationFrame(frame);
     }
     function renderStats(){
-      countUp(el('statMatches'),  state.stats.matches);
-      countUp(el('statPlayers'),  state.stats.players);
-      countUp(el('statWinnings'), state.stats.winnings);
-      countUp(el('statTopReward'),state.stats.topReward);
+      countUp(el('statMatches'), state.stats.matches); countUp(el('statPlayers'), state.stats.players);
+      countUp(el('statWinnings'), state.stats.winnings); countUp(el('statTopReward'), state.stats.topReward);
     }
-
-    function renderSlots(){
-      const sg = el('slotGrid'); sg.innerHTML='';
-      const used = state.used[state.map] || { solo:0, duo:0, squad:0 };
-      const t = state.mode;
-      const remaining = Math.max(0, CAPACITY[t] - (used[t]||0));
-      const div = document.createElement('div');
-      div.className='rounded-xl card p-3';
-      div.innerHTML=`
-        <div class="uppercase tracking-wide text-neutral-400">${t}</div>
-        <div class="mt-1 text-2xl font-semibold">${remaining}</div>
-        <div class="text-neutral-400">left / ${CAPACITY[t]}</div>`;
-      sg.appendChild(div);
-      el('currentModeLabel').textContent = t[0].toUpperCase()+t.slice(1);
-      el('currentModeInline').textContent = t[0].toUpperCase()+t.slice(1);
-    }
-
-    function openModal(){ el('registerModal').classList.remove('hidden'); el('registerModal').classList.add('flex'); }
-    function closeModal(){ el('registerModal').classList.add('hidden'); el('registerModal').classList.remove('flex'); }
-
-    // Init
-    renderStats();
-    renderSlots();
     el('year').textContent = new Date().getFullYear();
+    renderStats();
 
-    // Buttons → modal
-    el('openRegister').addEventListener('click', openModal);
-    el('openRegister2').addEventListener('click', openModal);
-    el('openRegister3')?.addEventListener('click', openModal);
-    el('closeRegister').addEventListener('click', closeModal);
+    function renderMatch(){
+      el('matchId').textContent = currentMatchID(); el('regMatchId').textContent = "#"+currentMatchID();
+      el('matchDate').textContent = state.matchSettings.date; el('checkin').textContent = state.matchSettings.checkin;
+      el('map').textContent = state.matchSettings.map; el('slotMap').textContent = state.matchSettings.map;
+      el('prize').textContent = state.matchSettings.prize;
+      
+      updateModeDisplay(state.mode);
+    }
+    renderMatch();
 
-    // CSV helpers
+    function updateModeDisplay(newMode) {
+        state.mode = newMode;
+        const modeCap = state.matchSettings.caps[newMode];
+        const modeFee = state.matchSettings.fees[newMode];
+        const modeName = newMode[0].toUpperCase() + newMode.slice(1);
+
+        // Update active button
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.mode === newMode) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Update displays
+        el('currentEntryFee').textContent = `Rs ${modeFee}`;
+        el('currentModeLabel').textContent = modeName;
+        el('currentModeInline').textContent = modeName;
+        el('regModeBtn').textContent = modeName;
+
+        // Render slots
+        const sg = el('slotGrid'); sg.innerHTML = '';
+        const currentUsed = currentMatchData().used;
+        const mapKey = state.matchSettings.map;
+        const usedMap = currentUsed[mapKey] || { solo: 0, duo: 0, squad: 0 };
+        const remaining = Math.max(0, modeCap - (usedMap[newMode] || 0));
+        
+        const div = document.createElement('div');
+        div.className='rounded-xl card p-3';
+        div.innerHTML=`
+          <div class="uppercase tracking-wide text-neutral-400">${newMode}</div>
+          <div class="mt-1 text-2xl font-semibold">${remaining}</div>
+          <div class="text-neutral-400">left / ${modeCap}</div>`;
+        sg.appendChild(div);
+    }
+
+    // Mode Switcher Listeners
+    document.querySelectorAll('#modeSwitcher .mode-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const mode = button.dataset.mode;
+            updateModeDisplay(mode);
+        });
+    });
+
+    // Registration Modal Open
+    el('openRegister2')?.addEventListener('click', () => openModal(registerModal));
+    el('openRegister3')?.addEventListener('click', () => openModal(registerModal));
+
+
+    // Registration → Payment Redirect (Updated with loading state and modal logic)
+    el('regForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      
+      // 1. Loading State: Disable button and show processing text
+      proceedPaymentBtn.textContent = 'Processing...';
+      proceedPaymentBtn.disabled = true;
+
+      const name=el('playerName').value.trim();
+      let pubg=el('pubgId').value.trim();
+      let phone=el('phone').value.trim();
+      
+      pubg = pubg.replace(/\s+/g,''); phone = phone.replace(/\s+/g,'');
+      
+      // 2. Client-Side Validation (Minimal)
+      if(!name || !pubg || !phone || !el('waConsent').checked || !el('agreeRules').checked){
+          alert('Please fill in all required fields and accept the terms.');
+          proceedPaymentBtn.textContent = 'Proceed to Payment';
+          proceedPaymentBtn.disabled = false;
+          return;
+      }
+      if(!/^\d{6,15}$/.test(pubg)){ 
+          alert('PUBG ID must be numbers only (6–15 digits).');
+          proceedPaymentBtn.textContent = 'Proceed to Payment';
+          proceedPaymentBtn.disabled = false;
+          return;
+      }
+
+      // Simulate network delay for effect (Remove this setTimeout block when moving to server)
+      setTimeout(() => {
+          
+          const type = state.mode; // Uses current selected mode
+          const amount = amountFor(type);
+          const remarks = pubg; // Use PUBG ID for matching
+
+          const reg = {
+            timestamp:new Date().toLocaleString(), match_id: currentMatchID(), mode:type,
+            player_name:name, pubg_id:pubg, phone:phone, remarks: remarks, amount
+          };
+
+          // Data Storage: Save registration
+          if (!state.matchData[currentMatchID()]) {
+              state.matchData[currentMatchID()] = { registrations: [], polls: [], used: {} };
+          }
+          state.matchData[currentMatchID()].registrations.push(reg);
+
+          // Deduct slot
+          const currentUsed = state.matchData[currentMatchID()].used;
+          const mapKey = state.matchSettings.map;
+          currentUsed[mapKey] = currentUsed[mapKey] || {solo:0,duo:0,squad:0};
+          currentUsed[mapKey][type] = (currentUsed[mapKey][type]||0)+1;
+          
+          MockBackend.saveState(state);
+          updateModeDisplay(type);
+          
+          // 3. Success: Open Payment Modal
+          sessionStorage.setItem('temp_pay_amount', amount);
+          sessionStorage.setItem('temp_pay_remarks', remarks);
+
+          closeModal(el('registerModal')); // Close the registration modal
+          renderPayment(); // Load payment data into modal HTML
+          openModal(el('paymentModal')); // OPEN PAYMENT MODAL
+
+          // Reset button state
+          proceedPaymentBtn.textContent = 'Proceed to Payment';
+          proceedPaymentBtn.disabled = false;
+
+      }, 500); // Simulated delay of 500ms (Remove this line and its matching bracket when implementing real fetch/API call)
+    });
+
+    // Payment Page Render (Uses session storage for data)
+    function renderPayment(){
+        const amount = sessionStorage.getItem('temp_pay_amount') || '100';
+        const remarks = sessionStorage.getItem('temp_pay_remarks') || '1234567890'; // Default to a simple ID
+        
+        el('payAmount').textContent = `Rs ${amount}`;
+        el('payRemarks').textContent = remarks;
+
+        // Re-attach handlers to ensure fresh data/state
+        document.getElementById('copyNumber').onclick = () => {
+            navigator.clipboard.writeText(el('payNumber').textContent.trim());
+            alert('eSewa number copied!');
+        };
+        document.getElementById('copyRemarks').onclick = () => {
+            navigator.clipboard.writeText(el('payRemarks').textContent.trim());
+            alert('Payment Remarks copied!');
+        };
+        document.getElementById('openEsewa').onclick = () => {
+          const to = el('payNumber').textContent.trim();
+          const amt = el('payAmount').textContent.replace(/[^\d]/g,'');
+          const remarks = el('payRemarks').textContent.trim();
+          const schemeUrl = `esewa://pay?to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amt)}&remarks=${encodeURIComponent(remarks)}`;
+          const fallbackMsg = "If the eSewa app doesn't open, copy the number and remarks, then pay manually.";
+          const i = document.createElement('iframe'); i.style.display='none'; i.src = schemeUrl;
+          document.body.appendChild(i);
+          setTimeout(()=>{ document.body.removeChild(i); alert(fallbackMsg); }, 1200);
+        };
+    }
+    
+    // Poll
+    el('pollForm')?.addEventListener('submit', e=>{
+      e.preventDefault();
+      const item = {
+        timestamp:new Date().toISOString(), date_choice:el('pollDate').value,
+        map_choice:el('pollMap').value, time_choice:el('pollTime').value,
+        mode_choice:el('pollMode').value
+      };
+      
+      if (!state.matchData[currentMatchID()]) {
+          state.matchData[currentMatchID()] = { registrations: [], polls: [], used: {} };
+      }
+      state.matchData[currentMatchID()].polls.push(item);
+      
+      MockBackend.saveState(state); 
+      el('pollThanks').classList.remove('hidden');
+      setTimeout(()=>el('pollThanks').classList.add('hidden'), 3000);
+    });
+
+    // --- Admin Dashboard Logic ---
+    function renderAdmin(){
+      // Match ID Setup: Pre-populate with next potential ID
+      const nextMatchId = getNextMatchID(currentMatchID());
+      el('admMatchId').value = nextMatchId; 
+      
+      // Existing Match Settings
+      el('regMatchIdTitle').textContent = currentMatchID(); // Title for current data
+      el('admMatchDate').value = state.matchSettings.date; el('admCheckin').value = state.matchSettings.checkin;
+      el('admMap').value = state.matchSettings.map; el('admPrize').value = state.matchSettings.prize;
+      el('admFeeSolo').value = state.matchSettings.fees.solo; el('admFeeDuo').value = state.matchSettings.fees.duo;
+      el('admFeeSquad').value = state.matchSettings.fees.squad;
+      el('admCapSolo').value = state.matchSettings.caps.solo; el('admCapDuo').value = state.matchSettings.caps.duo;
+      el('admCapSquad').value = state.matchSettings.caps.squad;
+
+      // Registrations table (only for current match ID)
+      const tb = el('regTable'); tb.innerHTML = '';
+      const currentRegs = currentMatchData().registrations;
+      currentRegs.slice().reverse().forEach(r=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.timestamp}</td><td>${r.match_id}</td><td>${r.mode}</td>
+          <td>${r.player_name}</td><td>${r.pubg_id}</td><td>${r.phone}</td>
+          <td><span class="badge badge-amber">${r.remarks}</span></td><td>Rs ${r.amount}</td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    // Publish match (Now publishes the NEW match ID)
+    document.getElementById('matchForm')?.addEventListener('submit', e=>{
+      e.preventDefault(); if(!isAuthed()) return alert('Please login again.');
+      
+      const newMatchId = el('admMatchId').value.trim();
+      
+      // Update global settings for the NEW match ID
+      state.matchSettings.id = newMatchId;
+      state.matchSettings.date = el('admMatchDate').value.trim() || state.matchSettings.date;
+      state.matchSettings.checkin = el('admCheckin').value.trim() || state.matchSettings.checkin; 
+      state.matchSettings.map = el('admMap').value;
+      state.matchSettings.prize = el('admPrize').value.trim() || state.matchSettings.prize;
+      state.matchSettings.fees.solo = Number(el('admFeeSolo').value)||state.matchSettings.fees.solo; 
+      state.matchSettings.fees.duo = Number(el('admFeeDuo').value)||state.matchSettings.fees.duo;
+      state.matchSettings.fees.squad = Number(el('admFeeSquad').value)||state.matchSettings.fees.squad; 
+      state.matchSettings.caps.solo = Number(el('admCapSolo').value)||state.matchSettings.caps.solo;
+      state.matchSettings.caps.duo = Number(el('admCapDuo').value)||state.matchSettings.caps.duo; 
+      state.matchSettings.caps.squad = Number(el('admCapSquad').value)||state.matchSettings.caps.squad;
+
+      // Ensure new match data structure is initialized if it doesn't exist
+      if (!state.matchData[newMatchId]) {
+          state.matchData[newMatchId] = { registrations: [], polls: [], used: { [state.matchSettings.map]: { solo: 0, duo: 0, squad: 0 } } };
+      }
+
+      MockBackend.saveState(state); 
+      renderMatch(); renderSlots(); renderAdmin();
+      alert(`New match (${newMatchId}) settings published. Public view now uses this match.`);
+    });
+
+    // Clear Match Data (Clear current match data only)
+    document.getElementById('clearMatchData')?.addEventListener('click', ()=>{
+      if(!isAuthed()) return alert('Please login again.');
+      if(!confirm(`Are you sure you want to permanently clear all registrations and poll data for the current match (${currentMatchID()})? This action cannot be undone.`)){ return; }
+
+      const id = currentMatchID();
+      if (state.matchData[id]) {
+          state.matchData[id].registrations = [];
+          state.matchData[id].polls = [];
+          state.matchData[id].used = { [state.matchSettings.map]: { solo: 0, duo: 0, squad: 0 } }; // Reset slot counters
+      }
+      
+      MockBackend.saveState(state); 
+      renderSlots(); renderAdmin(); // Re-render everything
+      alert(`Data for match ${id} cleared.`);
+    });
+    
+    // WIPE ALL TOURNAMENT DATA (New feature)
+    document.getElementById('wipeAllData')?.addEventListener('click', ()=>{
+      if(!isAuthed()) return alert('Please login again.');
+      if(!confirm("DANGER ZONE: Are you sure you want to PERMANENTLY WIPE ALL REGISTRATIONS AND POLLS across ALL MATCH IDs? This cannot be undone. This will reset the site to Match ID EBE-NEP-0001.")){ return; }
+
+      // Reset data to defaults
+      state.matchData = DEFAULT_DATA;
+      state.matchSettings = DEFAULT_MATCH_SETTINGS; // Resetting to EBE-NEP-0001
+      
+      MockBackend.saveState(state); 
+      renderMatch(); renderSlots(); renderAdmin(); // Re-render everything
+      alert(`ALL tournament data wiped. Site reset to Match ID ${currentMatchID()}.`);
+    });
+
+
+    // Update admin PIN
+    document.getElementById('pinForm')?.addEventListener('submit', e=>{
+      e.preventDefault(); if(!isAuthed()) return alert('Please login again.');
+      const np = el('newPin').value.trim(); if(np.length < 4){ alert("PIN must be at least 4 characters."); return; }
+      state.adminPin = np; MockBackend.saveState(state); alert("Admin PIN updated."); el('newPin').value = "";
+    });
+
+    // Exports
     function toCSV(rows){
+      if(!rows.length) return '';
+      // Ensure specific fields are included/excluded for consistency across all exports
+      const keys = Object.keys(rows[0]);
       const esc = v => '"' + String(v??'').replaceAll('"','""') + '"';
-      const header = Object.keys(rows[0] || {}).map(esc).join(',');
-      const body = rows.map(r => Object.values(r).map(esc).join(',')).join('\n');
+      const header = keys.map(esc).join(',');
+      const body = rows.map(r => keys.map(k => esc(r[k])).join(',')).join('\n');
       return header + (body?('\n'+body):'');
     }
     function downloadCSV(filename, rows){
@@ -333,51 +921,52 @@
       const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
       URL.revokeObjectURL(url);
     }
-
-    // Registration (demo)
-    document.getElementById('regForm').addEventListener('submit', e=>{
-      e.preventDefault();
-      const name=el('playerName').value.trim();
-      const pubg=el('pubgId').value.trim();
-      const phone=el('phone').value.trim();
-      const consent=el('waConsent').checked;
-      const agree=el('agreeRules').checked;
-      const type=state.mode;
-      if(!name||!pubg||!phone){ alert('Please complete all required fields.'); return; }
-      if(!consent){ alert('Please consent to WhatsApp group contact.'); return; }
-      if(!agree){ alert('Please agree to the Rules and T&Cs.'); return; }
-
-      state.registrations.push({
-        timestamp:new Date().toISOString(),
-        match_id:'EBE-NEP-0001',
-        mode:type, map:state.map,
-        player_name:name, pubg_id:pubg, phone:phone
-      });
-      state.used[state.map] = state.used[state.map] || {solo:0,duo:0,squad:0};
-      state.used[state.map][type] = (state.used[state.map][type]||0)+1;
-      renderSlots();
-      alert('Reservation created (demo). After payment (in production), you will receive the WhatsApp link.');
-      closeModal(); e.target.reset();
+    
+    // Export Current Match Registrations
+    document.getElementById('exportRegsAdmin')?.addEventListener('click', ()=>{
+        if(!isAuthed()) return alert('Please login.');
+        const id = currentMatchID();
+        downloadCSV(`registrations_${id}.csv`, currentMatchData().registrations);
     });
 
-    // Poll (demo)
-    document.getElementById('pollForm').addEventListener('submit', e=>{
-      e.preventDefault();
-      state.poll.push({
-        timestamp:new Date().toISOString(),
-        date_choice:el('pollDate').value,
-        map_choice:el('pollMap').value,
-        time_choice:el('pollTime').value,
-        mode_choice:el('pollMode').value
-      });
-      el('pollThanks').classList.remove('hidden');
-      setTimeout(()=>el('pollThanks').classList.add('hidden'), 3000);
+    // Export ALL Registrations (new feature)
+    document.getElementById('exportAllRegsAdmin')?.addEventListener('click', ()=>{
+        if(!isAuthed()) return alert('Please login.');
+        let allRegs = [];
+        for (const id in state.matchData) {
+            allRegs = allRegs.concat(state.matchData[id].registrations);
+        }
+        downloadCSV(`registrations_ALL.csv`, allRegs);
+    });
+    
+    // Export Current Match Polls
+    document.getElementById('exportPollAdmin')?.addEventListener('click', ()=>{
+        if(!isAuthed()) return alert('Please login.');
+        const id = currentMatchID();
+        downloadCSV(`polls_${id}.csv`, currentMatchData().polls);
     });
 
-    // Exports
-    document.getElementById('exportPoll').addEventListener('click', ()=>downloadCSV('poll_votes.csv', state.poll));
-    document.getElementById('exportRegs').addEventListener('click', ()=>downloadCSV('registrations.csv', state.registrations));
-    document.getElementById('exportRegs2').addEventListener('click', ()=>downloadCSV('registrations.csv', state.registrations));
+    // --- Final Initialization for Payment Handlers (since they are static) ---
+    // Copy buttons
+    document.getElementById('copyNumber').addEventListener('click', ()=>{
+      navigator.clipboard.writeText(document.getElementById('payNumber').textContent.trim());
+    });
+    document.getElementById('copyRemarks').addEventListener('click', ()=>{
+      navigator.clipboard.writeText(document.getElementById('payRemarks').textContent.trim());
+    });
+
+    // Open eSewa app (best-effort)
+    document.getElementById('openEsewa').addEventListener('click', ()=>{
+      const to = document.getElementById('payNumber').textContent.trim();
+      const amt = document.getElementById('payAmount').textContent.replace(/[^\d]/g,'');
+      const remarks = document.getElementById('payRemarks').textContent.trim();
+      const schemeUrl = `esewa://pay?to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amt)}&remarks=${encodeURIComponent(remarks)}`;
+      const fallbackMsg = "If the eSewa app doesn't open, copy the number and remarks above, then pay manually in the app.";
+      const i = document.createElement('iframe');
+      i.style.display='none'; i.src = schemeUrl;
+      document.body.appendChild(i);
+      setTimeout(()=>{ document.body.removeChild(i); alert(fallbackMsg); }, 1200);
+    });
   </script>
 </body>
 </html>
