@@ -56,28 +56,61 @@
     .mode-group .mode-btn + .mode-btn{border-left: 1px solid rgba(255,255,255,.2);}
     .mode-group .mode-btn.active{background-color: white; color: black; font-weight: 600;}
 
-    /* Styling for Payment Remarks box */
+    /* Registered Players modal tabs */
+    .player-mode-btn{
+      transition: background-color .15s, color .15s, border-color .15s;
+      border: 1px solid rgba(255,255,255,.2);
+      background: transparent;
+      color: rgba(255,255,255,.85);
+    }
+    .player-mode-btn.active{
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+      font-weight: 600;
+    }
+
+    /* Payment Remarks box */
     .payment-remark-box {
       background: rgba(17, 17, 17, 0.6);
       padding: 1rem;
       border-radius: 0.5rem;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    /* Toast Notification Style */
+
+    /* Toast Notification (CRITICAL FIX: non-interactive) */
     #toast-container {
         position: fixed;
         top: 20px;
         right: 20px;
         z-index: 1000;
         transition: opacity 0.3s, transform 0.3s;
+        pointer-events: none; /* so it never blocks nav clicks */
     }
     .toast {
-        background-color: #10B981; /* Tailwind emerald-500 */
+        background-color: #10B981;
         color: white;
         padding: 1rem;
         border-radius: 0.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        pointer-events: auto; /* buttons inside toast still clickable if added */
     }
+
+    /* Cookie Banner */
+    #cookie-banner {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 50;
+        background: #1f2937;
+        color: white;
+        padding: 1rem;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        display: flex; justify-content: space-between; align-items: center;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+        font-size: 0.875rem;
+    }
+    #cookie-banner.show { transform: translateY(0); }
   </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100">
@@ -99,6 +132,14 @@
   </header>
 
   <div id="toast-container" class="opacity-0 translate-x-full"></div>
+
+  <div id="cookie-banner">
+    <p>This website uses cookies for analytics and user preferences. By continuing, you agree to their use.</p>
+    <div class="flex gap-2 ml-4">
+        <button id="accept-cookies" class="btn px-3 py-1 rounded-md bg-white text-black text-sm font-semibold">Accept</button>
+        <button id="deny-cookies" class="btn px-3 py-1 rounded-md border border-white/50 text-white text-sm hover:bg-white/10">Deny</button>
+    </div>
+  </div>
 
   <section id="public-view" class="active-view">
     
@@ -179,6 +220,7 @@
 
           <div class="mt-5 flex flex-wrap gap-3">
             <button id="openRegister3" class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold">Register for <span id="regModeBtn">Solo</span></button>
+            <button id="viewRegisteredPlayersBtn" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">View Registered Players</button>
           </div>
         </div>
 
@@ -210,8 +252,7 @@
           <div><label class="block mb-1">Mode</label><select id="pollMode" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" required><option selected>Solo</option><option>Duo</option><option>Squad</option></select></div>
           <div class="md:col-span-4">
             <button class="btn px-4 py-2 rounded-xl bg-white text-black font-semibold" type="submit">Submit Vote</button>
-            <span id="pollThanks" class="ml-3 text-emerald-400 hidden">Thanks — your vote is recorded (demo).</span>
-          </div>
+            </div>
         </form>
         <p class="text-xs text-neutral-400 mt-3">* Poll votes saved via mock backend.</p>
       </div>
@@ -239,7 +280,7 @@
           <li><strong>Organizer:</strong> ElitesBattle Esports — Nepal.</li>
           <li><strong>Fees & Prizes:</strong> Entry fees in NPR. Prizes paid after admin verification (within 5 hours).</li>
           <li><strong>Cancellations:</strong> If organizer cancels, entrants receive a free re-entry credit to a future match of equal value.</li>
-          <li><strong>Data:</strong> We collect name, PUBG ID, WhatsApp number for tournament operations only.</li>
+          <li><strong>Data:</strong> We collect name, PUBG ID, and WhatsApp number for tournament operations only.</li>
         </ol>
       </div>
     </section>
@@ -285,10 +326,10 @@
                 <h3 class="text-lg font-semibold mb-3">Match Settings</h3>
                 <form id="matchForm" class="mt-3 text-sm space-y-3">
                     <div><label class="block mb-1">Match ID (Next Match)</label><input id="admMatchId" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10"></div>
-                    <div><label class="block mb-1">Date & Time (display)</label><input id="admMatchDate" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., 05 Nov 2025, 8:00 PM"></div>
-                    <div><label class="block mb-1">Check-in Window</label><input id="admCheckin" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., Be ready 7:30–7:50 PM"></div>
+                    <div><label class="block mb-1">Date & Time (display)</label><input id="admMatchDate" type="text" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., 05 Nov 2025, 8:00 PM"></div>
+                    <div><label class="block mb-1">Check-in Window</label><input id="admCheckin" type="text" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., Be ready 7:30–7:50 PM"></div>
                     <div><label class="block mb-1">Map</label><select id="admMap" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10"><option>Erangel</option><option>Livik</option><option>Sanhok</option><option>Miramar</option><option>Vikendi</option></select></div>
-                    <div><label class="block mb-1">Prize (display)</label><input id="admPrize" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Rs 3,000 + Rs 2,500 Special Award"></div>
+                    <div><label class="block mb-1">Prize (display)</label><input id="admPrize" type="text" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="Rs 3,000 + Rs 2,500 Special Award"></div>
                     <div class="grid grid-cols-3 gap-2">
                         <div><label class="block mb-1">Solo Fee</label><input id="admFeeSolo" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="100"></div>
                         <div><label class="block mb-1">Duo Fee</label><input id="admFeeDuo" type="number" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" value="200"></div>
@@ -308,7 +349,7 @@
             <div class="glass card rounded-2xl p-5">
                 <h4 class="font-semibold text-sm mb-2">Admin PIN Update</h4>
                 <form id="pinForm" class="text-sm space-y-2">
-                    <input id="newPin" placeholder="New PIN" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10">
+                    <input id="newPin" placeholder="New PIN" type="password" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10">
                     <button class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10" type="submit">Update PIN</button>
                 </form>
             </div>
@@ -326,14 +367,15 @@
             <h3 class="text-lg font-semibold">Registrations (<span id="regMatchIdTitle">Current Match</span>)</h3>
             <div class="flex gap-2">
               <button id="exportAllRegsAdmin" class="btn px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 text-sm">Export ALL Registrations CSV</button>
-              <button id="exportRegsAdmin" class="btn px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 text-sm">Export Match CSV</button>
+              <button id="exportRegsAdmin" class="btn px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 text-sm" type="button">Export Match CSV</button>
+              <button id="exportPollAdmin" class="btn px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 text-sm" type="button">Export Poll CSV</button>
               <button id="clearMatchData" class="btn px-3 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-sm" type="button">Clear Match Data</button>
             </div>
           </div>
           <p class="text-xs text-neutral-400 mt-1">Review the PUBG ID/Remarks to confirm payment matching. Data is only for the current match.</p>
           <div class="mt-3 overflow-auto">
             <table>
-              <thead><tr><th>Time</th><th>Match</th><th>Mode</th><th>Player/Lead</th><th>PUBG ID</th><th>Phone</th><th>Remarks</th><th>Amount</th></tr></thead>
+              <thead><tr><th>Time</th><th>Match</th><th>Mode</th><th>Map</th><th>Player/Lead</th><th>PUBG ID</th><th>Phone</th><th>Remarks</th><th>Amount</th><th>Status</th><th>Verify</th></tr></thead>
               <tbody id="regTable"></tbody>
             </table>
           </div>
@@ -376,10 +418,11 @@
           <input id="pubgId" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="e.g., 5123456789" required />
         </div>
         <div>
-          <label class="block mb-1">WhatsApp Number (intl format allowed) *</label>
+          <label class="block mb-1">Contact Number (WhatsApp/SMS) *</label>
+          <p class="text-xs text-neutral-500 mb-1">Make sure you have WhatsApp/SMS on this number for coordination.</p>
           <input id="phone" class="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/10" placeholder="+97798… or +447… or 98…" required />
         </div>
-        <label class="flex items-start gap-2"><input id="waConsent" type="checkbox" class="mt-1" required><span>I agree to be added to the official WhatsApp group for match coordination.</span></label>
+        <label class="flex items-start gap-2"><input id="waConsent" type="checkbox" class="mt-1" required><span>I agree to join the official Discord server/receive SMS for match coordination.</span></label>
         <label class="flex items-start gap-2"><input id="agreeRules" type="checkbox" class="mt-1" required><span>I confirm I am 16+ and I agree to the Rules and T&Cs.</span></label>
         <button id="proceedPaymentBtn" class="btn w-full py-2 rounded-xl bg-white text-black font-semibold" type="submit">Proceed to Payment</button>
         <p class="text-xs text-neutral-400">You’ll be taken to the payment section with your eSewa details.</p>
@@ -417,99 +460,126 @@
         </div>
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
-        <button id="openEsewa" class="btn px-4 py-2 rounded-xl bg-green-500 text-black font-semibold hover:bg-green-400">Pay in eSewa App</button>
+        <a href="https://esewa.com.np/#/home" target="_blank" id="openEsewa" class="btn px-4 py-2 rounded-xl bg-green-500 text-black font-semibold hover:bg-green-400">Pay in eSewa App</a>
         <button id="backToTournament" class="btn px-4 py-2 rounded-xl border border-white/20 hover:bg-white/10">Back to Tournament</button>
       </div>
-      <p class="text-xs text-neutral-400 mt-3">After payment, we match using your PUBG ID/Remarks and add you to the WhatsApp group to share the room code and match details.</p>
+      <p class="text-xs text-neutral-400 mt-3">Your slot is **PENDING VERIFICATION** until payment is confirmed. You will receive a Discord link/SMS shortly after payment confirmation.</p>
     </div>
   </div>
 
+<div id="registeredPlayersModal" class="fixed inset-0 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative z-10 w-full max-w-4xl mx-auto glass card rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Registered Players for Match <span class="text-neutral-400 text-sm" id="regPlayersMatchId">#EBE-NEP-0001</span></h3>
+            <button id="closeRegisteredPlayers" class="p-2 rounded-lg hover:bg-white/10" aria-label="Close">✕</button>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+            <button data-player-mode="solo" class="player-mode-btn active px-4 py-2 rounded-xl">Solo Players</button>
+            <button data-player-mode="duo" class="player-mode-btn px-4 py-2 rounded-xl">Duo Players</button>
+            <button data-player-mode="squad" class="player-mode-btn px-4 py-2 rounded-xl">Squad Players</button>
+        </div>
+
+        <div id="soloPlayersList" class="player-list mt-4 grid-auto grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <p class="text-neutral-400 col-span-full">No Solo players registered yet.</p>
+        </div>
+        <div id="duoPlayersList" class="player-list mt-4 hidden grid-auto grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <p class="text-neutral-400 col-span-full">No Duo players registered yet.</p>
+        </div>
+        <div id="squadPlayersList" class="player-list mt-4 hidden grid-auto grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <p class="text-neutral-400 col-span-full">No Squad players registered yet.</p>
+        </div>
+
+        <p class="text-xs text-neutral-400 mt-4">Players are listed in registration order. Status: **Pending Verification**.</p>
+    </div>
+</div>
+
 
   <script>
-    // --- Utils & State Management ---
-    const LS = {
-      get(k, def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch{ return def; } },
-      set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
-    };
+    // --- Configuration and Utilities ---
+    //const API_BASE_URL = 'http://localhost:3000/api'; 
+    const API_BASE_URL = 'https://elitesbattle-api.onrender.com/api';
 
-    // Data structure now uses a main object to store all matches
-    const DEFAULT_DATA = {
-        // match_id: { registrations: [], polls: [], used: { map: { mode: count } } }
-        "EBE-NEP-0001": {
-            registrations: [],
-            polls: [],
-            used: { "Erangel": { solo: 0, duo: 0, squad: 0 } } 
-        }
-    };
-    
-    // Global match settings
-    const DEFAULT_MATCH_SETTINGS = {
-      id: "EBE-NEP-0001", date: "05 Nov 2025, 8:00 PM", checkin: "Be ready 7:30–7:50 PM",
-      map: "Erangel", prize: "Rs 3,000 + Rs 2,500 Special Award",
-      fees: { solo: 100, duo: 200, squad: 400 }, caps: { solo: 100, duo: 50, squad: 25 }
-    };
-
-    const MockBackend = {
-        // Loads everything
-        loadInitialData: () => {
-            return {
-                mode: "solo",
-                matchData: LS.get("ebe_match_data", DEFAULT_DATA),
-                matchSettings: LS.get("ebe_match_settings", DEFAULT_MATCH_SETTINGS),
-                stats: LS.get("ebe_stats", { matches:12, players:286, winnings:54000, topReward:5000 }),
-                adminPin: LS.get("ebe_pin", "EBE2025")
-            };
-        },
-        // Saves everything
-        saveState: (data) => {
-            LS.set("ebe_match_data", data.matchData);
-            LS.set("ebe_match_settings", data.matchSettings);
-            LS.set("ebe_stats", data.stats);
-            LS.set("ebe_pin", data.adminPin);
-        },
-    };
-    
-    let state = MockBackend.loadInitialData();
-    // Ensure the current match ID exists in the data structure upon load
-    if (!state.matchData[state.matchSettings.id]) {
-        state.matchData[state.matchSettings.id] = { registrations: [], polls: [], used: { "Erangel": { solo: 0, duo: 0, squad: 0 } } };
-    }
-
-    // Utility to get current match data (used, regs, polls)
-    const currentMatchID = () => state.matchSettings.id;
-    const currentMatchData = () => state.matchData[currentMatchID()];
-    const getNextMatchID = (currentID) => {
-        const parts = currentID.split('-'); // EBE-NEP-0001 -> [EBE, NEP, 0001]
-        if (parts.length < 3) return currentID + "-0002"; // Safety fallback
-        
-        const number = parseInt(parts[2]);
-        if (isNaN(number)) return currentID + "-0002"; // Safety fallback
-
-        // Increment the number and format it back to four digits (0002)
-        const nextNumber = (number + 1).toString().padStart(4, '0');
+    const el = id => document.getElementById(id);
+    function isAuthed(){ return sessionStorage.getItem("ebe_authed")==="1"; }
+    function logout(){ sessionStorage.removeItem("ebe_authed"); }
+    function getNextMatchID(currentID) {
+        const parts = currentID.split('-'); 
+        if (parts.length < 3) return currentID + "-0002";
+        const nextNumber = (parseInt(parts[2]) + 1).toString().padStart(4, '0');
         parts[2] = nextNumber;
         return parts.join('-');
     };
 
-    // --- UI Hooks ---
-    const el = id => document.getElementById(id);
-    function isAuthed(){ return sessionStorage.getItem("ebe_authed")==="1"; }
-    function logout(){ sessionStorage.removeItem("ebe_authed"); }
-    function amountFor(mode){ return state.matchSettings.fees[mode.toLowerCase()] || 0; }
+    // Initial state placeholders (will be filled by API)
+    let state = {
+        mode: "solo",
+        matchSettings: { fees: { solo: 100, duo: 200, squad: 400 } }, 
+        stats: { matches: 0, players: 0, winnings: 0, topReward: 0 },
+        used: {},
+        allRegistrations: []
+    };
+
+    // --- Core API Functions ---
+    async function fetchData(endpoint, isAuthenticated = false) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (isAuthenticated) {
+            headers['Authorization'] = `Bearer ${sessionStorage.getItem('admin_token')}`;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
+            if (!response.ok) {
+                if (response.status === 401 && isAuthenticated) {
+                    logout();
+                    location.hash = '#admin-login';
+                }
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(errorData.error || response.statusText);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Fetch failed:", error);
+            if (endpoint === '/data') {
+               alert("Could not connect to the tournament server. Ensure your backend is running.");
+            }
+            return null;
+        }
+    }
+
+    async function postData(endpoint, data, isAuthenticated = false) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (isAuthenticated) {
+            headers['Authorization'] = `Bearer ${sessionStorage.getItem('admin_token')}`;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(errorData.error || response.statusText);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Post failed:", error);
+            alert(`Error: ${error.message}`);
+            return null;
+        }
+    }
     
-    // --- View Routing Logic ---
-    const publicView = el('public-view');
-    const adminView = el('admin-view');
-    const adminLogin = el('admin-login');
-    const adminDashboard = el('admin');
+    // --- UI Hooks ---
+    const registeredPlayersModal = el('registeredPlayersModal');
     const registerModal = el('registerModal');
     const paymentModal = el('paymentModal');
-    const proceedPaymentBtn = el('proceedPaymentBtn'); // Get the submit button element
-
+    const proceedPaymentBtn = el('proceedPaymentBtn'); 
+    
+    // Global Modal Functions
     function openModal(modalEl) { modalEl.classList.remove('hidden'); modalEl.classList.add('flex'); }
     function closeModal(modalEl) { modalEl.classList.add('hidden'); modalEl.classList.remove('flex'); }
     
-    // Show a temporary success toast notification
     function showToast(message) {
         const container = el('toast-container');
         const toast = document.createElement('div');
@@ -519,32 +589,37 @@
         container.innerHTML = '';
         container.appendChild(toast);
         
-        // Show the toast
         container.style.opacity = '1';
         container.style.transform = 'translateY(0)';
         
-        // Hide after 4 seconds
         setTimeout(() => {
             container.style.opacity = '0';
-            container.style.transform = 'translateY(-10px)'; // Move slightly up as it fades
+            container.style.transform = 'translateY(-10px)';
+            // ensure it never overlays after fade
+            setTimeout(()=>{ container.innerHTML=''; }, 350);
         }, 4000);
     }
-
+    
     // Unified Modal Open/Close handlers
     el('closeRegister').addEventListener('click', () => closeModal(registerModal));
     el('closePaymentModal').addEventListener('click', () => closeModal(paymentModal));
     el('backToTournament').addEventListener('click', () => {
         closeModal(paymentModal);
-        location.hash = '#tournament'; // Ensure page scrolls back to tournament
-        showToast("Registration Complete! Check WhatsApp for game details.");
+        location.hash = '#tournament'; 
+        showToast("Payment details saved. Your slot is PENDING VERIFICATION.");
     });
+    el('closeRegisteredPlayers').addEventListener('click', () => closeModal(registeredPlayersModal));
     
     function showView(targetHash) {
-        // Hide modals if viewing main content or admin views
         closeModal(registerModal);
         closeModal(paymentModal);
+        closeModal(registeredPlayersModal);
         
-        // Reset Admin View visibility
+        const publicView = el('public-view');
+        const adminView = el('admin-view');
+        const adminLogin = el('admin-login');
+        const adminDashboard = el('admin');
+
         publicView.classList.remove('hidden-view');
         adminView.classList.add('hidden-view');
         adminLogin.classList.add('hidden');
@@ -552,62 +627,105 @@
         
         const hash = targetHash || location.hash;
 
-        if (hash === '#admin') {
-            if (isAuthed()) {
+        if (hash === '#admin' || hash === '#admin-login') {
+            if (isAuthed() && hash === '#admin') {
                 adminView.classList.remove('hidden-view');
                 publicView.classList.add('hidden-view');
                 adminDashboard.classList.remove('hidden');
                 renderAdmin();
                 adminDashboard.scrollIntoView({ behavior: 'smooth' });
             } else {
-                location.hash = '#admin-login';
+                logout(); 
+                adminView.classList.remove('hidden-view');
+                publicView.classList.add('hidden-view');
+                adminLogin.classList.remove('hidden');
+                adminLogin.scrollIntoView({ behavior: 'smooth' });
             }
-        } else if (hash === '#admin-login') {
-            logout(); 
-            adminView.classList.remove('hidden-view');
-            publicView.classList.add('hidden-view');
-            adminLogin.classList.remove('hidden');
-            adminLogin.scrollIntoView({ behavior: 'smooth' });
         } else {
-            // Default public views (scroll to anchor)
             publicView.classList.remove('hidden-view');
             const targetEl = el(hash.substring(1)) || el('top');
             targetEl.scrollIntoView({ behavior: 'smooth' });
         }
     }
 
-    // Hash change handler
+    // Hash change handler and initial load
     window.addEventListener('hashchange', () => showView(location.hash));
-
-    // Initial load check
-    showView(location.hash || '#top');
     
-    // Navigation link handling
-    document.querySelectorAll('nav a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const hash = e.currentTarget.getAttribute('href');
-            if (hash === '#admin-login') {
-                e.preventDefault();
-                location.hash = '#admin-login'; 
-            } else if (hash.startsWith('#')) {
-                if (location.hash !== hash) location.hash = hash;
+    // --- Data Initialization ---
+    async function initializeApp() {
+        const data = await fetchData('/data');
+        if (data) {
+            state.matchSettings = data.matchSettings;
+            state.stats = data.stats;
+            state.used = data.used || {};
+            renderMatch();
+            renderStats();
+            
+            // Initial fetch for public registrations
+            const allRegs = await fetchData('/public/registrations'); 
+            if (allRegs) {
+                state.allRegistrations = allRegs.registrations;
             }
+
+            if (!location.hash) showView('#top');
+            else showView(location.hash);
+        }
+        
+        // Cookie Banner
+        const banner = el('cookie-banner');
+        if (localStorage.getItem('cookies_accepted') !== 'true') {
+            banner.classList.add('show');
+        }
+        el('accept-cookies').addEventListener('click', () => {
+            localStorage.setItem('cookies_accepted', 'true');
+            banner.classList.remove('show');
         });
-    });
+        el('deny-cookies').addEventListener('click', () => {
+            localStorage.setItem('cookies_accepted', 'false');
+            banner.classList.remove('show');
+        });
+
+        // One-time binder for Registered Players tabs (prevents duplicate listeners)
+        setupRegisteredPlayersTabs();
+    }
+    initializeApp();
+
+    // --- One-time event binding for Players modal tabs ---
+    function setupRegisteredPlayersTabs(){
+      const btns = document.querySelectorAll('.player-mode-btn');
+      btns.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const mode = btn.dataset.playerMode;
+          // toggle active state
+          document.querySelectorAll('.player-mode-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          // show corresponding list
+          document.querySelectorAll('.player-list').forEach(list => list.classList.add('hidden'));
+          el(`${mode}PlayersList`).classList.remove('hidden');
+        });
+      });
+    }
 
     // --- Admin Auth ---
-    el('adminLoginForm')?.addEventListener('submit', e => {
+    el('adminLoginForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const pin = el('adminPin').value.trim();
-        if (pin === state.adminPin) {
+        
+        const result = await postData('/admin/login', { pin });
+
+        if (result && result.token) {
+            sessionStorage.setItem("admin_token", result.token);
             sessionStorage.setItem("ebe_authed", "1");
             location.hash = '#admin';
+        } else if (result && result.error) {
+            alert(result.error);
         } else {
-            alert("Invalid PIN.");
+            alert("Login failed due to network or server error.");
         }
     });
 
     el('logoutAdmin')?.addEventListener('click', () => {
+        sessionStorage.removeItem('admin_token');
         logout();
         location.hash = '#admin-login';
     });
@@ -627,44 +745,41 @@
       countUp(el('statMatches'), state.stats.matches); countUp(el('statPlayers'), state.stats.players);
       countUp(el('statWinnings'), state.stats.winnings); countUp(el('statTopReward'), state.stats.topReward);
     }
-    el('year').textContent = new Date().getFullYear();
-    renderStats();
 
     function renderMatch(){
-      el('matchId').textContent = currentMatchID(); el('regMatchId').textContent = "#"+currentMatchID();
+      if (!state.matchSettings.id) return;
+      const currentMatchID = state.matchSettings.id;
+      el('matchId').textContent = currentMatchID; el('regMatchId').textContent = "#"+currentMatchID;
       el('matchDate').textContent = state.matchSettings.date; el('checkin').textContent = state.matchSettings.checkin;
       el('map').textContent = state.matchSettings.map; el('slotMap').textContent = state.matchSettings.map;
       el('prize').textContent = state.matchSettings.prize;
       
       updateModeDisplay(state.mode);
     }
-    renderMatch();
 
     function updateModeDisplay(newMode) {
         state.mode = newMode;
+        const mapKey = state.matchSettings.map;
+
+        // Ensure structure exists to avoid runtime errors on first load / after wipe
+        state.used[mapKey] = state.used[mapKey] || { solo: 0, duo: 0, squad: 0 };
+
         const modeCap = state.matchSettings.caps[newMode];
         const modeFee = state.matchSettings.fees[newMode];
         const modeName = newMode[0].toUpperCase() + newMode.slice(1);
 
-        // Update active button
         document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.dataset.mode === newMode) {
-                btn.classList.add('active');
-            }
+            if (btn.dataset.mode === newMode) btn.classList.add('active');
         });
 
-        // Update displays
         el('currentEntryFee').textContent = `Rs ${modeFee}`;
         el('currentModeLabel').textContent = modeName;
         el('currentModeInline').textContent = modeName;
         el('regModeBtn').textContent = modeName;
 
-        // Render slots
         const sg = el('slotGrid'); sg.innerHTML = '';
-        const currentUsed = currentMatchData().used;
-        const mapKey = state.matchSettings.map;
-        const usedMap = currentUsed[mapKey] || { solo: 0, duo: 0, squad: 0 };
+        const usedMap = state.used[mapKey];
         const remaining = Math.max(0, modeCap - (usedMap[newMode] || 0));
         
         const div = document.createElement('div');
@@ -678,22 +793,32 @@
 
     // Mode Switcher Listeners
     document.querySelectorAll('#modeSwitcher .mode-btn').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (e) => {
             const mode = button.dataset.mode;
+            document.querySelectorAll('#modeSwitcher .mode-btn').forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.classList.add('active');
             updateModeDisplay(mode);
         });
     });
 
     // Registration Modal Open
-    el('openRegister2')?.addEventListener('click', () => openModal(registerModal));
-    el('openRegister3')?.addEventListener('click', () => openModal(registerModal));
+    document.getElementById('openRegister2').addEventListener('click', () => openModal(registerModal));
+    document.getElementById('openRegister3').addEventListener('click', () => openModal(registerModal));
 
+    // Registered Players Modal Handler
+    document.getElementById('viewRegisteredPlayersBtn').addEventListener('click', async () => {
+        const allRegs = await fetchData('/public/registrations');
+        if (allRegs) {
+            state.allRegistrations = allRegs.registrations;
+            renderRegisteredPlayers();
+            openModal(registeredPlayersModal);
+        }
+    });
 
-    // Registration → Payment Redirect (Updated with loading state and modal logic)
-    el('regForm').addEventListener('submit', e=>{
+    // Registration → Payment
+    document.getElementById('regForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       
-      // 1. Loading State: Disable button and show processing text
       proceedPaymentBtn.textContent = 'Processing...';
       proceedPaymentBtn.disabled = true;
 
@@ -703,71 +828,53 @@
       
       pubg = pubg.replace(/\s+/g,''); phone = phone.replace(/\s+/g,'');
       
-      // 2. Client-Side Validation (Minimal)
-      if(!name || !pubg || !phone || !el('waConsent').checked || !el('agreeRules').checked){
-          alert('Please fill in all required fields and accept the terms.');
+      const type = state.mode; 
+      const amount = state.matchSettings.fees[type];
+      const remarks = pubg; 
+
+      if(!name || !pubg || !phone || !el('waConsent').checked || !el('agreeRules').checked || !/^\d{6,15}$/.test(pubg)){
+          alert('Please check all fields and agree to the terms.');
           proceedPaymentBtn.textContent = 'Proceed to Payment';
           proceedPaymentBtn.disabled = false;
           return;
       }
-      if(!/^\d{6,15}$/.test(pubg)){ 
-          alert('PUBG ID must be numbers only (6–15 digits).');
-          proceedPaymentBtn.textContent = 'Proceed to Payment';
-          proceedPaymentBtn.disabled = false;
-          return;
-      }
+      
+      const result = await postData('/register', {
+          player_name: name,
+          pubg_id: pubg,
+          phone: phone,
+          mode: type,
+          amount: amount 
+      });
 
-      // Simulate network delay for effect (Remove this setTimeout block when moving to server)
-      setTimeout(() => {
-          
-          const type = state.mode; // Uses current selected mode
-          const amount = amountFor(type);
-          const remarks = pubg; // Use PUBG ID for matching
-
-          const reg = {
-            timestamp:new Date().toLocaleString(), match_id: currentMatchID(), mode:type,
-            player_name:name, pubg_id:pubg, phone:phone, remarks: remarks, amount
-          };
-
-          // Data Storage: Save registration
-          if (!state.matchData[currentMatchID()]) {
-              state.matchData[currentMatchID()] = { registrations: [], polls: [], used: {} };
-          }
-          state.matchData[currentMatchID()].registrations.push(reg);
-
-          // Deduct slot
-          const currentUsed = state.matchData[currentMatchID()].used;
+      if (result) {
           const mapKey = state.matchSettings.map;
-          currentUsed[mapKey] = currentUsed[mapKey] || {solo:0,duo:0,squad:0};
-          currentUsed[mapKey][type] = (currentUsed[mapKey][type]||0)+1;
-          
-          MockBackend.saveState(state);
-          updateModeDisplay(type);
-          
-          // 3. Success: Open Payment Modal
+          state.used[mapKey] = state.used[mapKey] || { solo: 0, duo: 0, squad: 0 };
+          state.used[mapKey][type] = (state.used[mapKey][type] || 0) + 1;
+          updateModeDisplay(type); 
+
           sessionStorage.setItem('temp_pay_amount', amount);
           sessionStorage.setItem('temp_pay_remarks', remarks);
 
-          closeModal(el('registerModal')); // Close the registration modal
-          renderPayment(); // Load payment data into modal HTML
-          openModal(el('paymentModal')); // OPEN PAYMENT MODAL
-
-          // Reset button state
-          proceedPaymentBtn.textContent = 'Proceed to Payment';
-          proceedPaymentBtn.disabled = false;
-
-      }, 500); // Simulated delay of 500ms (Remove this line and its matching bracket when implementing real fetch/API call)
+          closeModal(el('registerModal'));
+          renderPayment(); 
+          openModal(el('paymentModal'));
+          showToast("Registration successful! Proceed with payment.");
+          el('regForm').reset();
+      }
+      
+      proceedPaymentBtn.textContent = 'Proceed to Payment';
+      proceedPaymentBtn.disabled = false;
     });
 
-    // Payment Page Render (Uses session storage for data)
+    // Payment Page Render
     function renderPayment(){
         const amount = sessionStorage.getItem('temp_pay_amount') || '100';
-        const remarks = sessionStorage.getItem('temp_pay_remarks') || '1234567890'; // Default to a simple ID
+        const remarks = sessionStorage.getItem('temp_pay_remarks') || '1234567890';
         
         el('payAmount').textContent = `Rs ${amount}`;
         el('payRemarks').textContent = remarks;
 
-        // Re-attach handlers to ensure fresh data/state
         document.getElementById('copyNumber').onclick = () => {
             navigator.clipboard.writeText(el('payNumber').textContent.trim());
             alert('eSewa number copied!');
@@ -789,125 +896,217 @@
     }
     
     // Poll
-    el('pollForm')?.addEventListener('submit', e=>{
+    el('pollForm')?.addEventListener('submit', async (e)=>{
       e.preventDefault();
+      
       const item = {
-        timestamp:new Date().toISOString(), date_choice:el('pollDate').value,
-        map_choice:el('pollMap').value, time_choice:el('pollTime').value,
+        date_choice:el('pollDate').value,
+        map_choice:el('pollMap').value, 
+        time_choice:el('pollTime').value,
         mode_choice:el('pollMode').value
       };
-      
-      if (!state.matchData[currentMatchID()]) {
-          state.matchData[currentMatchID()] = { registrations: [], polls: [], used: {} };
+
+      const result = await postData('/poll', item);
+
+      if (result) {
+        showToast("Thanks for voting! Your poll has been saved.");
+        el('pollForm').reset();
       }
-      state.matchData[currentMatchID()].polls.push(item);
-      
-      MockBackend.saveState(state); 
-      el('pollThanks').classList.remove('hidden');
-      setTimeout(()=>el('pollThanks').classList.add('hidden'), 3000);
     });
 
     // --- Admin Dashboard Logic ---
-    function renderAdmin(){
-      // Match ID Setup: Pre-populate with next potential ID
-      const nextMatchId = getNextMatchID(currentMatchID());
-      el('admMatchId').value = nextMatchId; 
-      
-      // Existing Match Settings
-      el('regMatchIdTitle').textContent = currentMatchID(); // Title for current data
-      el('admMatchDate').value = state.matchSettings.date; el('admCheckin').value = state.matchSettings.checkin;
-      el('admMap').value = state.matchSettings.map; el('admPrize').value = state.matchSettings.prize;
-      el('admFeeSolo').value = state.matchSettings.fees.solo; el('admFeeDuo').value = state.matchSettings.fees.duo;
-      el('admFeeSquad').value = state.matchSettings.fees.squad;
-      el('admCapSolo').value = state.matchSettings.caps.solo; el('admCapDuo').value = state.matchSettings.caps.duo;
-      el('admCapSquad').value = state.matchSettings.caps.squad;
+    async function renderAdmin(){
+        const token = sessionStorage.getItem('admin_token');
+        if (!token) return;
 
-      // Registrations table (only for current match ID)
-      const tb = el('regTable'); tb.innerHTML = '';
-      const currentRegs = currentMatchData().registrations;
-      currentRegs.slice().reverse().forEach(r=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.timestamp}</td><td>${r.match_id}</td><td>${r.mode}</td>
-          <td>${r.player_name}</td><td>${r.pubg_id}</td><td>${r.phone}</td>
-          <td><span class="badge badge-amber">${r.remarks}</span></td><td>Rs ${r.amount}</td>
-        `;
-        tb.appendChild(tr);
-      });
+        const data = await fetchData('/admin/registrations', true); 
+
+        if (data && data.registrations) {
+            const currentMatchID = data.currentMatchId;
+            el('regMatchIdTitle').textContent = currentMatchID; 
+            
+            const tb = el('regTable'); tb.innerHTML = '';
+            data.registrations.slice().reverse().forEach(r=>{
+                const tr = document.createElement('tr');
+                const isVerified = r.status === 'VERIFIED';
+                const checkboxHtml = `<input type="checkbox" data-pubgid="${r.pubg_id}" onchange="updateVerificationStatus(this)" ${isVerified ? 'checked' : ''}>`;
+
+                tr.innerHTML = `
+                    <td>${r.timestamp}</td><td>${r.match_id}</td><td>${r.mode}</td><td>${state.matchSettings.map}</td>
+                    <td>${r.player_name}</td><td>${r.pubg_id}</td><td>${r.phone}</td>
+                    <td><span class="badge badge-amber">${r.remarks}</span></td><td>Rs ${r.amount}</td>
+                    <td>${r.status.replace('_', ' ')}</td>
+                    <td>${checkboxHtml}</td>
+                `;
+                tb.appendChild(tr);
+            });
+            
+            const nextMatchId = getNextMatchID(currentMatchID);
+            el('admMatchId').value = nextMatchId; 
+            el('admMatchDate').value = state.matchSettings.date;
+            el('admCheckin').value = state.matchSettings.checkin;
+            el('admMap').value = state.matchSettings.map;
+            el('admPrize').value = state.matchSettings.prize;
+            el('admFeeSolo').value = state.matchSettings.fees.solo;
+            el('admFeeDuo').value = state.matchSettings.fees.duo;
+            el('admFeeSquad').value = state.matchSettings.fees.squad;
+            el('admCapSolo').value = state.matchSettings.caps.solo;
+            el('admCapDuo').value = state.matchSettings.caps.duo;
+            el('admCapSquad').value = state.matchSettings.caps.squad;
+
+        } else if (!data) {
+             el('regMatchIdTitle').textContent = "---";
+             el('regTable').innerHTML = '<tr><td colspan="11" class="text-center text-red-400">Error loading data. Check console.</td></tr>';
+        }
+    }
+    
+    // Admin verification
+    async function updateVerificationStatus(checkbox) {
+        const pubgId = checkbox.dataset.pubgid;
+        const newStatus = checkbox.checked ? 'VERIFIED' : 'PENDING_VERIFICATION';
+        
+        const result = await postData('/admin/verify', { pubg_id: pubgId, status: newStatus }, true);
+        
+        if (result) {
+            showToast(result.message);
+            renderAdmin(); 
+        } else {
+            checkbox.checked = !checkbox.checked;
+        }
+    }
+    window.updateVerificationStatus = updateVerificationStatus;
+
+    // Registered Players renderer (no tab listeners here)
+    function renderRegisteredPlayers() {
+        const soloList = el('soloPlayersList');
+        const duoList = el('duoPlayersList');
+        const squadList = el('squadPlayersList');
+
+        soloList.innerHTML = '';
+        duoList.innerHTML = '';
+        squadList.innerHTML = '';
+
+        const registeredMatchId = state.matchSettings.id;
+        el('regPlayersMatchId').textContent = "#" + registeredMatchId;
+
+        const soloPlayers = state.allRegistrations.filter(r => r.mode === 'solo' && r.match_id === registeredMatchId);
+        const duoPlayers = state.allRegistrations.filter(r => r.mode === 'duo' && r.match_id === registeredMatchId);
+        const squadPlayers = state.allRegistrations.filter(r => r.mode === 'squad' && r.match_id === registeredMatchId);
+
+        function createPlayerCard(player, index) {
+            const teamNumber = index + 1;
+            const statusClass = player.status === 'VERIFIED' ? 'text-emerald-400' : 'text-yellow-400';
+            const statusText = player.status.replace('_', ' ');
+
+            return `
+                <div class="rounded-xl card p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="text-neutral-400 text-xs">TEAM #${teamNumber} | <span class="${statusClass}">${statusText}</span></div>
+                        <div class="font-semibold text-lg leading-tight">${player.player_name}</div>
+                    </div>
+                    <div class="mt-2 text-sm text-neutral-300">
+                        <span class="block text-xs text-neutral-500">PUBG ID:</span>
+                        <span class="font-mono">${player.pubg_id}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        soloPlayers.length
+          ? soloPlayers.forEach((p,i)=> soloList.innerHTML += createPlayerCard(p,i))
+          : soloList.innerHTML = '<p class="text-neutral-400 col-span-full">No Solo players registered yet.</p>';
+
+        duoPlayers.length
+          ? duoPlayers.forEach((p,i)=> duoList.innerHTML += createPlayerCard(p,i))
+          : duoList.innerHTML = '<p class="text-neutral-400 col-span-full">No Duo players registered yet.</p>';
+
+        squadPlayers.length
+          ? squadPlayers.forEach((p,i)=> squadList.innerHTML += createPlayerCard(p,i))
+          : squadList.innerHTML = '<p class="text-neutral-400 col-span-full">No Squad players registered yet.</p>';
     }
 
-    // Publish match (Now publishes the NEW match ID)
-    document.getElementById('matchForm')?.addEventListener('submit', e=>{
-      e.preventDefault(); if(!isAuthed()) return alert('Please login again.');
-      
-      const newMatchId = el('admMatchId').value.trim();
-      
-      // Update global settings for the NEW match ID
-      state.matchSettings.id = newMatchId;
-      state.matchSettings.date = el('admMatchDate').value.trim() || state.matchSettings.date;
-      state.matchSettings.checkin = el('admCheckin').value.trim() || state.matchSettings.checkin; 
-      state.matchSettings.map = el('admMap').value;
-      state.matchSettings.prize = el('admPrize').value.trim() || state.matchSettings.prize;
-      state.matchSettings.fees.solo = Number(el('admFeeSolo').value)||state.matchSettings.fees.solo; 
-      state.matchSettings.fees.duo = Number(el('admFeeDuo').value)||state.matchSettings.fees.duo;
-      state.matchSettings.fees.squad = Number(el('admFeeSquad').value)||state.matchSettings.fees.squad; 
-      state.matchSettings.caps.solo = Number(el('admCapSolo').value)||state.matchSettings.caps.solo;
-      state.matchSettings.caps.duo = Number(el('admCapDuo').value)||state.matchSettings.caps.duo; 
-      state.matchSettings.caps.squad = Number(el('admCapSquad').value)||state.matchSettings.caps.squad;
+    // --- Admin Buttons ---
+    document.getElementById('matchForm')?.addEventListener('submit', async (e)=>{
+        e.preventDefault(); 
+        if(!isAuthed()) return alert('Please login again.');
 
-      // Ensure new match data structure is initialized if it doesn't exist
-      if (!state.matchData[newMatchId]) {
-          state.matchData[newMatchId] = { registrations: [], polls: [], used: { [state.matchSettings.map]: { solo: 0, duo: 0, squad: 0 } } };
-      }
+        const payload = {
+            id: el('admMatchId').value.trim(),
+            matchDate: el('admMatchDate').value.trim(),
+            checkin: el('admCheckin').value.trim(),
+            map: el('admMap').value,
+            prize: el('admPrize').value.trim(),
+            feeSolo: el('admFeeSolo').value,
+            feeDuo: el('admFeeDuo').value,
+            feeSquad: el('admFeeSquad').value,
+            capSolo: el('admCapSolo').value,
+            capDuo: el('admCapDuo').value,
+            capSquad: el('admCapSquad').value,
+        };
 
-      MockBackend.saveState(state); 
-      renderMatch(); renderSlots(); renderAdmin();
-      alert(`New match (${newMatchId}) settings published. Public view now uses this match.`);
+        const result = await postData('/admin/matchsettings', payload, true); 
+
+        if (result) {
+            state.matchSettings = result.matchSettings;
+            renderMatch();
+            renderAdmin();
+            alert(`New match (${result.matchSettings.id}) settings published!`);
+        }
     });
 
-    // Clear Match Data (Clear current match data only)
-    document.getElementById('clearMatchData')?.addEventListener('click', ()=>{
-      if(!isAuthed()) return alert('Please login again.');
-      if(!confirm(`Are you sure you want to permanently clear all registrations and poll data for the current match (${currentMatchID()})? This action cannot be undone.`)){ return; }
+    document.getElementById('clearMatchData')?.addEventListener('click', async () => {
+        if(!isAuthed()) return alert('Please login again.');
+        if(!confirm(`Are you sure you want to permanently clear all registrations and poll data for the current match (${state.matchSettings.id})?`)){ return; }
 
-      const id = currentMatchID();
-      if (state.matchData[id]) {
-          state.matchData[id].registrations = [];
-          state.matchData[id].polls = [];
-          state.matchData[id].used = { [state.matchSettings.map]: { solo: 0, duo: 0, squad: 0 } }; // Reset slot counters
-      }
-      
-      MockBackend.saveState(state); 
-      renderSlots(); renderAdmin(); // Re-render everything
-      alert(`Data for match ${id} cleared.`);
+        const result = await postData('/admin/clearmatch', { id: state.matchSettings.id }, true);
+
+        if (result) {
+            alert(result.message);
+            const newData = await fetchData('/data');
+            if (newData) {
+                state.used = newData.used || {};
+                renderMatch(); 
+                renderAdmin();
+            }
+        }
     });
     
-    // WIPE ALL TOURNAMENT DATA (New feature)
-    document.getElementById('wipeAllData')?.addEventListener('click', ()=>{
-      if(!isAuthed()) return alert('Please login again.');
-      if(!confirm("DANGER ZONE: Are you sure you want to PERMANENTLY WIPE ALL REGISTRATIONS AND POLLS across ALL MATCH IDs? This cannot be undone. This will reset the site to Match ID EBE-NEP-0001.")){ return; }
+    document.getElementById('wipeAllData')?.addEventListener('click', async () => {
+        if(!isAuthed()) return alert('Please login again.');
+        if(!confirm("DANGER ZONE: Are you sure you want to PERMANENTLY WIPE ALL TOURNAMENT DATA? This will reset the site to Match ID EBE-NEP-0001.")){ return; }
 
-      // Reset data to defaults
-      state.matchData = DEFAULT_DATA;
-      state.matchSettings = DEFAULT_MATCH_SETTINGS; // Resetting to EBE-NEP-0001
-      
-      MockBackend.saveState(state); 
-      renderMatch(); renderSlots(); renderAdmin(); // Re-render everything
-      alert(`ALL tournament data wiped. Site reset to Match ID ${currentMatchID()}.`);
+        const result = await postData('/admin/wipeall', {}, true);
+
+        if (result) {
+            alert(result.message);
+            const newData = await fetchData('/data');
+            if (newData) {
+                state.matchSettings = newData.matchSettings;
+                state.used = newData.used || {};
+                renderMatch(); 
+                renderAdmin();
+            }
+        }
     });
 
+    document.getElementById('pinForm')?.addEventListener('submit', async (e)=>{
+        e.preventDefault(); 
+        if(!isAuthed()) return alert('Please login again.');
 
-    // Update admin PIN
-    document.getElementById('pinForm')?.addEventListener('submit', e=>{
-      e.preventDefault(); if(!isAuthed()) return alert('Please login again.');
-      const np = el('newPin').value.trim(); if(np.length < 4){ alert("PIN must be at least 4 characters."); return; }
-      state.adminPin = np; MockBackend.saveState(state); alert("Admin PIN updated."); el('newPin').value = "";
+        const newPin = el('newPin').value.trim();
+        if (newPin.length < 4) { alert("PIN must be at least 4 characters."); return; }
+        
+        const result = await postData('/admin/updatepin', { newPin: newPin }, true);
+
+        if (result) {
+             alert(result.message);
+             el('newPin').value = '';
+        }
     });
 
-    // Exports
+    // --- Exports ---
     function toCSV(rows){
       if(!rows.length) return '';
-      // Ensure specific fields are included/excluded for consistency across all exports
       const keys = Object.keys(rows[0]);
       const esc = v => '"' + String(v??'').replaceAll('"','""') + '"';
       const header = keys.map(esc).join(',');
@@ -922,44 +1121,55 @@
       URL.revokeObjectURL(url);
     }
     
-    // Export Current Match Registrations
-    document.getElementById('exportRegsAdmin')?.addEventListener('click', ()=>{
+    document.getElementById('exportRegsAdmin')?.addEventListener('click', async ()=>{
         if(!isAuthed()) return alert('Please login.');
-        const id = currentMatchID();
-        downloadCSV(`registrations_${id}.csv`, currentMatchData().registrations);
+        const data = await fetchData('/admin/registrations', true); 
+        
+        if (data && data.registrations) {
+            const exportData = data.registrations.map(reg => ({
+                Timestamp: reg.timestamp, MatchID: reg.match_id, Mode: reg.mode, 
+                Map: state.matchSettings.map,
+                PlayerName: reg.player_name, PUBGID: reg.pubg_id, Phone: reg.phone,
+                Remarks: reg.remarks, Amount: reg.amount, Status: reg.status
+            }));
+            downloadCSV(`registrations_${data.currentMatchId}.csv`, exportData);
+        }
     });
 
-    // Export ALL Registrations (new feature)
     document.getElementById('exportAllRegsAdmin')?.addEventListener('click', ()=>{
         if(!isAuthed()) return alert('Please login.');
-        let allRegs = [];
-        for (const id in state.matchData) {
-            allRegs = allRegs.concat(state.matchData[id].registrations);
-        }
-        downloadCSV(`registrations_ALL.csv`, allRegs);
+        alert("Feature requires a dedicated 'Export All' API endpoint, exporting current match data instead.");
+        document.getElementById('exportRegsAdmin').click();
     });
     
-    // Export Current Match Polls
-    document.getElementById('exportPollAdmin')?.addEventListener('click', ()=>{
+    document.getElementById('exportPollAdmin')?.addEventListener('click', async ()=>{
         if(!isAuthed()) return alert('Please login.');
-        const id = currentMatchID();
-        downloadCSV(`polls_${id}.csv`, currentMatchData().polls);
+        const data = await fetchData('/admin/polls', true); 
+        if (data && data.polls && data.polls.length > 0) {
+            const exportData = data.polls.map(poll => ({
+                Timestamp: poll.timestamp,
+                Map_Choice: poll.map_choice,
+                Mode_Choice: poll.mode_choice,
+                Date_Choice: poll.date_choice,
+                Time_Choice: poll.time_choice
+            }));
+            downloadCSV(`polls_${data.currentMatchId}.csv`, exportData);
+        } else if (data) {
+            alert("No poll data found for current match.");
+        }
     });
 
-    // --- Final Initialization for Payment Handlers (since they are static) ---
-    // Copy buttons
+    // --- Final Initialization for Payment Handlers ---
     document.getElementById('copyNumber').addEventListener('click', ()=>{
-      navigator.clipboard.writeText(document.getElementById('payNumber').textContent.trim());
+      navigator.clipboard.writeText(el('payNumber').textContent.trim());
     });
     document.getElementById('copyRemarks').addEventListener('click', ()=>{
-      navigator.clipboard.writeText(document.getElementById('payRemarks').textContent.trim());
+      navigator.clipboard.writeText(el('payRemarks').textContent.trim());
     });
-
-    // Open eSewa app (best-effort)
     document.getElementById('openEsewa').addEventListener('click', ()=>{
-      const to = document.getElementById('payNumber').textContent.trim();
-      const amt = document.getElementById('payAmount').textContent.replace(/[^\d]/g,'');
-      const remarks = document.getElementById('payRemarks').textContent.trim();
+      const to = el('payNumber').textContent.trim();
+      const amt = el('payAmount').textContent.replace(/[^\d]/g,'');
+      const remarks = el('payRemarks').textContent.trim();
       const schemeUrl = `esewa://pay?to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amt)}&remarks=${encodeURIComponent(remarks)}`;
       const fallbackMsg = "If the eSewa app doesn't open, copy the number and remarks above, then pay manually in the app.";
       const i = document.createElement('iframe');
